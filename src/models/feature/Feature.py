@@ -1,9 +1,12 @@
 
 class Feature(object):
 
-    def __init__(self, name, values_set):
+    def __init__(self, name):
         self.name = name
-        self.values_set = values_set
+        self.samples_set = []
+
+    def add_sample(self, sample):
+        self.samples_set.append(sample)
 
     def sort_value_set(self):
-        self.values_set.sort()
+        self.samples_set.sort(key=lambda x: x.value)

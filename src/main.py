@@ -8,12 +8,12 @@ def main():
     financal_train_set, financal_eval_set = preprocess_data("../Datasets/Kaggle/Financal_Data/BBCA.JK_weekly_new.csv")
     # print(list(financal_data.columns.values)) #get columns name
     # print(financal_data['Date'].tolist()) #get all values from a column
+    # print(financal_train_set)
+    # print(financal_train_set.index.values)
 
     iforest = IsolationForest(financal_train_set, 10, 10)
     iforest.init()
-    print("test")
-
-
+    print("end")
     #dataset preprocess
 
 def preprocess_data(file_path):
