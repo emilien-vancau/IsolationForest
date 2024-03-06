@@ -5,6 +5,7 @@ from src.models.isolationForest.IsolationForest import IsolationForest
 
 
 def main():
+    # dataset preprocess
     financal_train_set, financal_eval_set = preprocess_data("../Datasets/Kaggle/Financal_Data/BBCA.JK_weekly_new.csv")
     # print(list(financal_data.columns.values)) #get columns name
     # print(financal_data['Date'].tolist()) #get all values from a column
@@ -12,9 +13,8 @@ def main():
     # print(financal_train_set.index.values)
 
     iforest = IsolationForest(financal_train_set, 10, 10)
-    iforest.init()
-    print("end")
-    #dataset preprocess
+    iforest.create()
+
 
 def preprocess_data(file_path):
     input_data = pd.read_csv(file_path)
