@@ -9,7 +9,7 @@ class IsolationNode(object):
         self.right_child = None #right subtree
 
     def set_left_child(self, inode):
-        pass
+        self.left_child = inode
 
     def set_right_child(self, inode):
-        pass
+        self.right_child = inode
