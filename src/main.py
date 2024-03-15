@@ -12,14 +12,22 @@ def main():
     # print(financal_train_set)
     # print(financal_train_set.index.values)
 
-    iforest = IsolationForest(financal_train_set, 10, 10)
+    iforest = IsolationForest(financal_train_set, 10, 256)
     iforest.create()
+    #iforest.score(financal_eval_set, 10)
 
 
 def preprocess_data(file_path):
     input_data = pd.read_csv(file_path)
-    processed_input_data = input_data[input_data.select_dtypes(include=['float64', 'int64']).columns]
-    train_data, eval_data = train_test_split(processed_input_data)
+
+    #drop column which contains categorical values
+    processed_data = input_data[input_data.select_dtypes(include=['float64', 'int64']).columns]
+
+    #drop row with missing values
+    processed_data.dropna()
+
+    #split input data
+    train_data, eval_data = train_test_split(processed_data)
     return train_data, eval_data
 
 def drop_date_columns(df):
