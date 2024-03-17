@@ -1,6 +1,7 @@
 import math
 
 from src.models.feature.Feature import Feature
+from src.models.feature.FeaturesSet import FeaturesSet
 from src.models.isolationForest.IsolationTree import IsolationTree
 from src.models.sample.Sample import Sample
 
@@ -8,15 +9,17 @@ from src.models.sample.Sample import Sample
 class IsolationForest(object):
 
     def __init__(self, input_data, nb_tree, subsampling_size):
-        self.input_data = input_data
-        self.nb_tree = nb_tree
-        self.subsampling_size = subsampling_size
-        self.input_features = []
-        self.tree_list = []
+        self.input_data = input_data #store original dataframe
+        self.nb_tree = nb_tree #number of trees inside the forest
+        self.subsampling_size = subsampling_size #subsampling size of the forest
+        self.input_features_set = None #converted data used for building the forest
+        self.tree_list = [] #store all the trees composing the forest
 
     def init(self):
         """convert input dataframe to features set and sort them by ascending order"""
-        # get df index values
+        input_features = []
+
+        # get dataframe index values
         obs_indexes = self.input_data.index.values
 
         for column in self.input_data.columns:
@@ -29,14 +32,16 @@ class IsolationForest(object):
                 feature.add_sample(sample)
 
             feature.sort_value_set()
-            self.input_features.append(feature)
+            input_features.append(feature)
+
+        self.input_features_set = FeaturesSet(len(obs_indexes), input_features)
 
     def create(self):
         # forest initialization
         self.init()
 
         # check if data exists
-        if len(self.input_features) <= 1:
+        if len(self.input_features_set.features_set) < 1:
             print("no data inside the forest")
             return None
 
@@ -46,7 +51,7 @@ class IsolationForest(object):
 
         for i in range(0, self.nb_tree):
             # select random feature set and create a new tree
-            tree = IsolationTree(self.input_features, height_limit)
+            tree = IsolationTree(self.input_features_set, height_limit)
             self.tree_list.append(tree)
 
     def path_length(self, instance, inode, height_limit, current_pathlength):

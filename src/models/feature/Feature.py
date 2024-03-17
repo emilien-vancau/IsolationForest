@@ -1,4 +1,3 @@
-
 class Feature(object):
 
     def __init__(self, name):
@@ -19,4 +18,8 @@ class Feature(object):
         right_features = Feature(self.name)
         left_features.add_samples(self.samples_set[:split_index])
         right_features.add_samples(self.samples_set[split_index:])
-        return left_features, right_features
+
+        left_size = len(left_features.samples_set)
+        right_size = len(right_features.samples_set)
+
+        return left_features, right_features, left_size, right_size
