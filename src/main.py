@@ -14,7 +14,7 @@ def main():
 
     iforest = IsolationForest(financal_train_set, 10, 256)
     iforest.create()
-    #iforest.score(financal_eval_set, 10)
+    iforest.score(financal_eval_set, 10)
 
 
 def preprocess_data(file_path):

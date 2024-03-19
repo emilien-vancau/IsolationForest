@@ -2,6 +2,7 @@ import math
 
 from src.models.feature.Feature import Feature
 from src.models.feature.FeaturesSet import FeaturesSet
+from src.models.isolationForest.IsolationLeaf import IsolationLeaf
 from src.models.isolationForest.IsolationTree import IsolationTree
 from src.models.sample.Sample import Sample
 
@@ -55,8 +56,8 @@ class IsolationForest(object):
             self.tree_list.append(tree)
 
     def path_length(self, instance, inode, height_limit, current_pathlength):
-        if current_pathlength > height_limit or inode.is_leaf():
-            return current_pathlength
+        if current_pathlength > height_limit or isinstance(inode, IsolationLeaf):
+            return current_pathlength + self.c(inode.size)
         if instance[inode.feature_index] < inode.split_value:
             return self.path_length(instance, inode.left_child, height_limit, current_pathlength+1)
         else:
@@ -65,13 +66,15 @@ class IsolationForest(object):
     def score(self, dataset, height_limit):
         if self.tree_list is not None:
             for row in dataset.values:
+                path_row = []
                 for tree in self.tree_list:
                     pathlength = self.path_length(row, tree.root, height_limit, 1)
+                    path_row.append(pathlength)
+                print("t")
 
     def c(self, size):
         if size > 2:
             return 2 * (math.log2(size - 1) + 0.5772156649) - 2 * (size - 1) / size
         if size == 2:
             return 1
-        else:
-            return 0
+        return 0
