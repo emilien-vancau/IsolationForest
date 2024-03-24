@@ -1,4 +1,5 @@
 import math
+import statistics as stats
 
 from src.models.feature.Feature import Feature
 from src.models.feature.FeaturesSet import FeaturesSet
@@ -63,14 +64,27 @@ class IsolationForest(object):
         else:
             return self.path_length(instance, inode.right_child, height_limit, current_pathlength+1)
 
-    def score(self, dataset, height_limit):
+    def mean_tree_length(self, dataset, height_limit):
+        # compute pathlenght for each observation inside each tree,
+        # then compute mean for one observation for each tree
         if self.tree_list is not None:
+            pathlengths_mean = []
             for row in dataset.values:
-                path_row = []
+                pathlength_row = []
                 for tree in self.tree_list:
                     pathlength = self.path_length(row, tree.root, height_limit, 1)
-                    path_row.append(pathlength)
-                print("t")
+                    pathlength_row.append(pathlength)
+                pathlengths_mean.append(stats.mean(pathlength_row))
+            return pathlengths_mean
+
+    def score(self, dataset, height_limit):
+        pathlengths_mean = self.mean_tree_length(dataset, height_limit)
+
+        anomalies_scores = []
+        for pathlength in pathlengths_mean:
+            anomalies_scores.append(self.s(pathlength))
+        return anomalies_scores
+
 
     def c(self, size):
         if size > 2:
@@ -78,3 +92,6 @@ class IsolationForest(object):
         if size == 2:
             return 1
         return 0
+
+    def s(self, path_length):
+        return math.pow(2, -path_length/self.c(self.subsampling_size))

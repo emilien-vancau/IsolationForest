@@ -1,6 +1,9 @@
 import pandas as pd
 from sklearn.model_selection import train_test_split
 
+#only for debugging
+from sklearn.ensemble import IsolationForest as IF
+
 from src.models.isolationForest.IsolationForest import IsolationForest
 
 
@@ -14,8 +17,13 @@ def main():
 
     iforest = IsolationForest(financal_train_set, 10, 256)
     iforest.create()
-    iforest.score(financal_eval_set, 10)
+    scores = iforest.score(financal_train_set, 10)
+    print(scores)
 
+    clf = IF(n_estimators=10, max_samples=256, warm_start=True, random_state=0)
+    clf.fit(financal_train_set)
+    scores2 = clf.score_samples(financal_train_set)
+    print(scores2)
 
 def preprocess_data(file_path):
     input_data = pd.read_csv(file_path)
