@@ -1,3 +1,5 @@
+import math
+
 import pandas as pd
 from sklearn.model_selection import train_test_split
 
@@ -9,21 +11,30 @@ from src.models.isolationForest.IsolationForest import IsolationForest
 
 def main():
     # dataset preprocess
-    financal_train_set, financal_eval_set = preprocess_data("../Datasets/Kaggle/Financal_Data/BBCA.JK_weekly_new.csv")
+    #X_train_set, X_eval_set = preprocess_data("../Datasets/Kaggle/Financal_Data/BBCA.JK_weekly_new.csv")
+    #X_train_set, X_eval_set = preprocess_data("../Datasets/Others/http.csv")
     # print(list(financal_data.columns.values)) #get columns name
     # print(financal_data['Date'].tolist()) #get all values from a column
-    # print(financal_train_set)
-    # print(financal_train_set.index.values)
+    # print(X_train_set)
+    # print(X_train_set.index.values)
 
-    iforest = IsolationForest(financal_train_set, 10, 256)
+    df = pd.read_csv("../Datasets/Others/http.csv")
+    #N = 16_000
+    #df = df.sample(N)  # grab random subset (too slow otherwise)
+
+    X, y = df.drop('attack', axis=1), df['attack']
+
+    iforest = IsolationForest(X, 30, 256)
     iforest.create()
-    scores = iforest.score(financal_train_set, 10)
+    scores = iforest.score(X, 10)
     print(scores)
 
-    clf = IF(n_estimators=10, max_samples=256, warm_start=True, random_state=0)
-    clf.fit(financal_train_set)
-    scores2 = clf.score_samples(financal_train_set)
-    print(scores2)
+    print("-------------------------------------------------------------------")
+
+    # clf = IF(n_estimators=300, max_samples=256, warm_start=True, random_state=0)
+    # clf.fit(X)
+    # scores2 = clf.decision_function(X)
+    # print(scores2)
 
 def preprocess_data(file_path):
     input_data = pd.read_csv(file_path)

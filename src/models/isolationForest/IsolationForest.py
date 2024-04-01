@@ -1,5 +1,6 @@
 import math
 import statistics as stats
+import numpy as np
 
 from src.models.feature.Feature import Feature
 from src.models.feature.FeaturesSet import FeaturesSet
@@ -11,10 +12,10 @@ from src.models.sample.Sample import Sample
 class IsolationForest(object):
 
     def __init__(self, input_data, nb_tree, subsampling_size):
-        self.input_data = input_data #store original dataframe
+        self.input_dataframe = input_data #store original dataframe
         self.nb_tree = nb_tree #number of trees inside the forest
         self.subsampling_size = subsampling_size #subsampling size of the forest
-        self.input_features_set = None #converted data used for building the forest
+        self.input_features_set = None #converted data used for building the forest in experimental mode
         self.tree_list = [] #store all the trees composing the forest
 
     def init(self):
@@ -22,11 +23,11 @@ class IsolationForest(object):
         input_features = []
 
         # get dataframe index values
-        obs_indexes = self.input_data.index.values
+        obs_indexes = self.input_dataframe.index.values
 
-        for column in self.input_data.columns:
+        for column in self.input_dataframe.columns:
             # get current feature set
-            feature_column = self.input_data[column].tolist()
+            feature_column = self.input_dataframe[column].tolist()
             feature = Feature(column)
             for obs in range(0, len(obs_indexes)):
                 # create sample and add it to the corresponding feature set
@@ -38,31 +39,47 @@ class IsolationForest(object):
 
         self.input_features_set = FeaturesSet(len(obs_indexes), input_features)
 
-    def create(self):
-        # forest initialization
-        self.init()
+    def create(self, is_experimental=False):
 
         # check if data exists
-        if len(self.input_features_set.features_set) < 1:
-            print("no data inside the forest")
+        if self.input_dataframe.empty:
+            print("no data available")
             return None
 
-        # calculate trees height limit
-        # round up the log2 of sumbsampling
+        # forest initialization
+        if is_experimental:
+            self.init()
+
+        # calculate trees height limit, round up the log2 of sumbsampling
         height_limit = math.ceil(math.log2(self.subsampling_size))
 
+        #extract numpy array that contains all the values of the dataframe
+        input_values = self.input_dataframe.values
+
         for i in range(0, self.nb_tree):
-            # select random feature set and create a new tree
-            tree = IsolationTree(self.input_features_set, height_limit)
+            #subsample the whole dataset
+            sub_index = np.random.choice(input_values.shape[0], self.subsampling_size, replace=False)
+            sub_values = input_values[sub_index]
+
+            # create a new tree and add it to the forest
+            tree = IsolationTree(sub_values, height_limit)
             self.tree_list.append(tree)
 
     def path_length(self, instance, inode, height_limit, current_pathlength):
         if current_pathlength > height_limit or isinstance(inode, IsolationLeaf):
             return current_pathlength + self.c(inode.size)
         if instance[inode.feature_index] < inode.split_value:
-            return self.path_length(instance, inode.left_child, height_limit, current_pathlength+1)
+            return self.path_length(instance, inode.left_child, height_limit, current_pathlength + 1)
         else:
-            return self.path_length(instance, inode.right_child, height_limit, current_pathlength+1)
+            return self.path_length(instance, inode.right_child, height_limit, current_pathlength + 1)
+
+    def path_length_experimental(self, instance, inode, height_limit, current_pathlength):
+        if current_pathlength > height_limit or isinstance(inode, IsolationLeaf):
+            return current_pathlength + self.c(inode.size)
+        if instance[inode.feature_index] < inode.split_value: #and instance.observation_id
+            return self.path_length(instance, inode.left_child, height_limit, current_pathlength + 1)
+        else:
+            return self.path_length(instance, inode.right_child, height_limit, current_pathlength + 1)
 
     def mean_tree_length(self, dataset, height_limit):
         # compute pathlenght for each observation inside each tree,
@@ -83,12 +100,12 @@ class IsolationForest(object):
         anomalies_scores = []
         for pathlength in pathlengths_mean:
             anomalies_scores.append(self.s(pathlength))
-        return anomalies_scores
+        return np.array(anomalies_scores)
 
 
     def c(self, size):
         if size > 2:
-            return 2 * (math.log2(size - 1) + 0.5772156649) - 2 * (size - 1) / size
+            return 2 * (math.log(size - 1) + 0.5772156649) - 2 * (size - 1) / size
         if size == 2:
             return 1
         return 0
