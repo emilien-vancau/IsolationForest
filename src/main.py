@@ -1,4 +1,5 @@
 import math
+import time
 
 import pandas as pd
 from sklearn.model_selection import train_test_split
@@ -19,15 +20,25 @@ def main():
     # print(X_train_set.index.values)
 
     df = pd.read_csv("../Datasets/Others/http.csv")
-    #N = 16_000
-    #df = df.sample(N)  # grab random subset (too slow otherwise)
+
+    #df = df.sample(16000)
 
     X, y = df.drop('attack', axis=1), df['attack']
 
+    build_start_time = time.time()
     iforest = IsolationForest(X, 30, 256)
     iforest.create()
+    build_end_time = time.time()
+    print(f"Forest build in: {build_end_time - build_start_time} seconds")
+
+    score_start_time = time.time()
     scores = iforest.score(X, 10)
-    print(scores)
+    score_end_time = time.time()
+    print(f"Score compute in: {score_end_time - score_start_time} seconds")
+
+    #add new column with anomaly score for each observations
+    X['anomaly score'] = scores
+    print(X.sort_values(by='anomaly score', ascending=False))
 
     print("-------------------------------------------------------------------")
 
