@@ -44,11 +44,20 @@ class IsolationForest(object):
         self.input_features_set = FeaturesSet(len(obs_indexes), input_features)
 
     def create(self, is_experimental=False):
+        '''
 
+        :param is_experimental:
+        :return:
+        '''
         # check if data exists
         if self.input_dataframe.empty:
             print("no data available")
             return None
+
+        # check subsampling size
+        if self.subsampling_size > self.input_dataframe.shape[0]:
+            print(f"not enought data to set subsampling size to {self.subsampling_size}. Subsampling size set to max dataframe size")
+            self.subsampling_size = self.input_dataframe.shape[0]
 
         # forest initialization
         if is_experimental:
@@ -70,11 +79,17 @@ class IsolationForest(object):
             self.tree_list.append(tree)
 
     def score(self, dataset, height_limit):
+        '''
+
+        :param dataset:
+        :param height_limit:
+        :return:
+        '''
         if height_limit > self.height_limit:
             height_limit = self.height_limit
             print(f"height limit is above tree height. Use of tree height as height limit")
 
-        print(f"height limit is: {height_limit}")
+        print(f"height limit set to: {height_limit}")
 
         time_path_start = time.time()
         pathlengths_mean = self.mean_tree_length(dataset, height_limit)
@@ -88,6 +103,12 @@ class IsolationForest(object):
         return np.array(anomalies_scores)
 
     def mean_tree_length(self, dataset, height_limit):
+        '''
+
+        :param dataset:
+        :param height_limit:
+        :return:
+        '''
         # compute pathlenght for each observation inside each tree,
         # then compute mean for one observation for each tree
         if self.tree_list is not None:
@@ -102,6 +123,12 @@ class IsolationForest(object):
             return pathlengths_mean
 
     def path_length(self, instance, inode):
+        '''
+
+        :param instance:
+        :param inode:
+        :return:
+        '''
         depth = 0
         while isinstance(inode, IsolationNode):
             if instance[inode.feature_index] < inode.split_value:
@@ -131,13 +158,34 @@ class IsolationForest(object):
         else:
             return self.original_path_length(instance, inode.right_child, height_limit, current_pathlength + 1)
 
-    def path_length_experimental(self, instance, inode, height_limit, current_pathlength):
-        if current_pathlength > height_limit or isinstance(inode, IsolationLeaf):
-            return current_pathlength + self.c(inode.size)
-        if instance[inode.feature_index] < inode.split_value: #and instance.observation_id
-            return self.original_path_length(instance, inode.left_child, height_limit, current_pathlength + 1)
-        else:
-            return self.original_path_length(instance, inode.right_child, height_limit, current_pathlength + 1)
+    # def path_length_experimental(self, instance, inode, height_limit, current_pathlength):
+    #     if current_pathlength > height_limit or isinstance(inode, IsolationLeaf):
+    #         return current_pathlength + self.c(inode.size)
+    #     if instance[inode.feature_index] < inode.split_value: #and instance.observation_id
+    #         return self.original_path_length(instance, inode.left_child, height_limit, current_pathlength + 1)
+    #     else:
+    #         return self.original_path_length(instance, inode.right_child, height_limit, current_pathlength + 1)
+
+    def percentile_threshold(self, scores, percentile_percentage):
+        '''
+
+        :param scores:
+        :param percentile_percentage:
+        :return:
+        '''
+        sorted_scores = np.sort(scores)[::-1]
+        threshold_index = int(percentile_percentage / 100 * len(sorted_scores))
+        return sorted_scores[threshold_index]
+
+    def predict_anomalies(self, scores, threshold):
+        '''
+
+        :param scores:
+        :param threshold:
+        :return:
+        '''
+
+        return np.array([1 if score > threshold else 0 for score in scores])
 
     def c(self, size):
         if size > 2:
