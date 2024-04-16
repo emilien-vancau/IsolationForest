@@ -3,6 +3,7 @@ import statistics as stats
 import time
 
 import numpy as np
+from sklearn import metrics
 
 from src.models.feature.Feature import Feature
 from src.models.feature.FeaturesSet import FeaturesSet
@@ -176,6 +177,31 @@ class IsolationForest(object):
         sorted_scores = np.sort(scores)[::-1]
         threshold_index = int(percentile_percentage / 100 * len(sorted_scores))
         return sorted_scores[threshold_index]
+
+    def tpr_threshold(self, y, scores, desired_tpr):
+        '''
+
+        :param y:
+        :param scores:
+        :param desired_tpr:
+        :return:
+        '''
+
+        threshold = 1.0
+        while threshold >= 0:
+            prediction = self.predict_anomalies(scores, threshold)
+            confusion_matrix = metrics.confusion_matrix(y, prediction)
+            tn, fp, fn, tp = confusion_matrix.flat
+            tpr = tp / (tp + fn)
+            fpr = fp / (fp + tn)
+
+            if tpr >= desired_tpr:
+                return threshold, tpr, fpr
+
+            threshold -= 0.01
+        print("unable to reach desired TPR")
+        return
+
 
     def predict_anomalies(self, scores, threshold):
         '''
