@@ -11,13 +11,16 @@ class IsolationTree(object):
     def __init__(self, input_data, height_limit):
         self.input_data = input_data #input features set with its observations
         self.height_limit = height_limit #height limit of the tree
-        self.root = self.create(0, self.input_data)
-        #self.root = self.create_experimental(0, self.input_data) #call create_experimental method which will create the whole tree recursively
+        self.inode_cnt = 0
+        self.ileaf_cnt = 0
+        self.root = self.__create(0, self.input_data)
+        #self.root = self.__create_experimental(0, self.input_data) #call create_experimental method which will create the whole tree recursively
 
-    def create(self, depth, input_values):
+    def __create(self, depth, input_values):
 
         # cut recursion when depth over height limit or if no data left in feature set
         if depth >= self.height_limit or input_values.shape[0] <= 1:
+            self.ileaf_cnt += 1
             return IsolationLeaf(input_values.shape[0])
 
         # get feature to split
@@ -31,18 +34,19 @@ class IsolationTree(object):
                               selected_feature,
                               split_value,
                               None)
+        self.inode_cnt += 1
 
         #split the feature sets to give to left/right child
         left_values = input_values[input_values[:, selected_feature] < split_value]
         right_values = input_values[input_values[:, selected_feature] >= split_value]
 
         #create recusively left/right subtree
-        inode.set_left_child(self.create(depth + 1, left_values))
-        inode.set_right_child(self.create(depth + 1,right_values))
+        inode.set_left_child(self.__create(depth + 1, left_values))
+        inode.set_right_child(self.__create(depth + 1, right_values))
 
         return inode
 
-    def create_experimental(self, depth, input_data):
+    def __create_experimental(self, depth, input_data):
         '''this method is experimental'''
 
         #cut recursion when depth over height limit or if no data left in feature set
@@ -64,8 +68,8 @@ class IsolationTree(object):
         #split the feature sets to give to left/right child
         left_features_set, right_features_set = self.split_features_set(input_data, split_index)
 
-        inode.set_left_child(self.create_experimental(depth + 1, left_features_set))
-        inode.set_right_child(self.create_experimental(depth + 1, right_features_set))
+        inode.set_left_child(self.__create_experimental(depth + 1, left_features_set))
+        inode.set_right_child(self.__create_experimental(depth + 1, right_features_set))
 
         return inode
 

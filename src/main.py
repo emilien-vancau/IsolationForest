@@ -7,6 +7,9 @@ from sklearn.model_selection import train_test_split
 from sklearn import metrics
 import matplotlib.pyplot as plt
 
+
+
+
 from sklearn.ensemble import IsolationForest as IF
 from src.models.isolationForest.IsolationForest import IsolationForest
 
@@ -14,7 +17,7 @@ from src.models.isolationForest.IsolationForest import IsolationForest
 def main():
     # dataset preprocess
     #train_X, eval_X, _, _ = preprocess_data("../datasets/kaggle/financal_Data/BBCA.JK_weekly_new.csv", None)
-    train_X, eval_X, train_y, eval_y = preprocess_data("../datasets/others/http.csv", "attack")
+    train_X, eval_X, train_y, eval_y = preprocess_data("../datasets/others/http.csv", "attack", 100000)
     #train_X, eval_X, train_y, eval_y = preprocess_data("../datasets/kaggle/ddos/Friday-WorkingHours-Afternoon-DDos.pcap_ISCX.csv", "Label")
 
     # print(list(financal_data.columns.values)) #get columns name
@@ -24,33 +27,29 @@ def main():
 
     #df = df.sample(16000)
 
-    build_start_time = time.time()
+    print("=== Begin training phase ===")
     iforest = IsolationForest(train_X, 30, 256)
-    iforest.create()
-    build_end_time = time.time()
-    print(f"Forest build in: {build_end_time - build_start_time} seconds")
+    iforest.fit()
+    print(f"Training time: {iforest.training_time} seconds")
+    print("=== End training phase ===")
+    print()
 
-    score_start_time = time.time()
+    print("=== Begin evaluation phase ===")
     scores = iforest.score(eval_X, 10)
-    score_end_time = time.time()
-    print(f"Score compute in: {score_end_time - score_start_time} seconds")
-
-    #eval_y = pd.DataFrame(eval_y, columns=['attack'])
-
-    # Percentile threshold
-    # scores[::-1].sort()
-    # threshold = iforest.percentile_threshold(scores, 0.75)
-    # print(f"percentile: {threshold}")
+    evaluation_end_time = time.time()
+    print(f"Score compute in: {iforest.evaluation_time} seconds")
+    print("=== End evaluation phase ===")
 
     #TPR threshold
-    threshold, tpr, _ = iforest.tpr_threshold(eval_y, scores, desired_tpr=.8)
+    threshold, tpr1, fpr1 = iforest.tpr_threshold(eval_y, scores, desired_tpr=.8)
 
     prediction_y = iforest.predict_anomalies(scores, threshold)
 
-    print(f"TPR Threshold: {threshold}")
-    print(f"TPR: {tpr}")
+    print(f"TPR Threshold found at: {threshold}")
+    #print(f"TPR: {tpr1}")
 
-    compute_auc(eval_y, scores)
+    #print(f"AUC value: {compute_auc(eval_y, scores)}")
+
 
     # add new columns with anomaly score and prediction for each observations
     # eval_X['anomaly score'], eval_y['anomaly score'] = scores, scores
@@ -59,13 +58,15 @@ def main():
     # print(eval_y.sort_values(by='anomaly score', ascending=False))
 
     # confusion matrix
-    # confusion_matrix = metrics.confusion_matrix(eval_y, prediction_y)
-    # cm_display = metrics.ConfusionMatrixDisplay(confusion_matrix=confusion_matrix, display_labels=[False, True])
-    # cm_display.plot()
-    # plt.show()
+    fpr, tpr, _ = metrics.roc_curve(eval_y, prediction_y)
+    print(f"AUC: {metrics.auc(fpr, tpr)}")
+    confusion_matrix = metrics.confusion_matrix(eval_y, prediction_y)
+    cm_display = metrics.ConfusionMatrixDisplay(confusion_matrix=confusion_matrix, display_labels=[False, True])
+    cm_display.plot()
+    plt.show()
 
     # ROC curve
-    # fpr, tpr, _ = metrics.roc_curve(eval_y, prediction_y)
+
     # df = pd.DataFrame(dict(fpr=fpr, tpr=tpr))
     # plt.plot(df['fpr'], df['tpr'], label='ROC Curve')
     # plt.plot([0, 1], [0, 1], linestyle='--', label='Random Guess', color='r')  # ligne de référence aléatoire
@@ -84,8 +85,16 @@ def main():
     # print(scores2)
 
 
-def preprocess_data(file_path: str, prediction_column):
+def preprocess_data(file_path: str, prediction_column: str, sample_size):
     df = pd.read_csv(file_path, sep=r'\s*,\s*', header=0, encoding='ascii', engine='python')
+
+    # randomly pre-sample dataset
+    if sample_size:
+        if df.shape[0] >= sample_size:
+            df = df.sample(sample_size)
+        else:
+            print("sample size too high for dataframe")
+            return
 
     # drop column which contains categorical values and drop row with missing values
     proc_df = df[df.select_dtypes(include=['float64', 'int64']).columns.tolist()].dropna()
@@ -117,7 +126,24 @@ def preprocess_data(file_path: str, prediction_column):
         return train_X, eval_X, train_y, eval_y
 
 def compute_auc(anomalies_labels, anomalies_scores):
-    print("t")
+    df = pd.DataFrame({'score': anomalies_scores, 'label': anomalies_labels})
+    true_anomalies = df[df['label'] == 1]
+    df.sort_values(by='score', ascending=False)
+
+    true_anomalies_cnt = true_anomalies.shape[0]
+    true_normal_points_cnt = df.shape[0] - true_anomalies_cnt
+
+    # get n firsts row in the ranked list
+    df = df.head(true_anomalies_cnt)
+
+    S = sum(df.index.values)
+
+
+    #S = sum(rank for rank, label in enumerate(scores_labels, start=1) if label)
+
+    AUC = (S - ((true_anomalies_cnt ** 2 + true_anomalies_cnt) / 2)) / (true_anomalies_cnt * true_normal_points_cnt)
+
+    return AUC
 
 if __name__ == "__main__":
     main()
