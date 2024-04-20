@@ -1,9 +1,10 @@
 class IsolationNode(object):
 
-    def __init__(self, feature_name, feature_index, split_value, observation_id):
+    def __init__(self, feature_name, feature_index, split_value, size, observation_id):
         self.feature_name = feature_name #name of the selected feature
         self.feature_index = feature_index #index of the selected feature
         self.split_value = split_value #split index in the feature list
+        self.size = size
         self.observation_id = observation_id #id of sample attach to the value
         self.left_child = None #left subtree
         self.right_child = None #right subtree

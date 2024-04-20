@@ -1,5 +1,7 @@
 import math
 import time
+from datetime import datetime
+import json
 
 import numpy as np
 import pandas as pd
@@ -15,6 +17,16 @@ from src.models.isolationForest.IsolationForest import IsolationForest
 
 
 def main():
+
+    parameters = {
+        "df_sampling_sizes": [.2, .4, .6, .8, 1],
+        "df_feature_sizes": [.2, .4, .6, .8, 1],
+        "forest_nb_trees": [10, 30, 50, 70, 90, 110, 130, 150, 170, 190, 210, 230, 250],
+        "forest_subsampling_sizes": [128, 256, 512, 1024, 2048, 4096, 8192, 16384],
+        "tree_height_limit": [4, 8, 16, 32, 64, 128],
+        "pathlength_height_limit": [4, 8, 16, 32, 64, 128]
+    }
+
     # dataset preprocess
     #train_X, eval_X, _, _ = preprocess_data("../datasets/kaggle/financal_Data/BBCA.JK_weekly_new.csv", None)
     train_X, eval_X, train_y, eval_y = preprocess_data("../datasets/others/http.csv", "attack", 100000)
@@ -24,8 +36,6 @@ def main():
     # print(financal_data['Date'].tolist()) #get all values from a column
     # print(X_train_set)
     # print(X_train_set.index.values)
-
-    #df = df.sample(16000)
 
     print("=== Begin training phase ===")
     iforest = IsolationForest(train_X, 30, 256)
@@ -39,6 +49,8 @@ def main():
     evaluation_end_time = time.time()
     print(f"Score compute in: {iforest.evaluation_time} seconds")
     print("=== End evaluation phase ===")
+
+    #save_exp_data("write test", {}, iforest.get_parameters(), {})
 
     #TPR threshold
     threshold, tpr1, fpr1 = iforest.tpr_threshold(eval_y, scores, desired_tpr=.8)
@@ -84,20 +96,54 @@ def main():
     #scores2 = clf.decision_function(eval_x)
     # print(scores2)
 
+def http_experiment():
+    train_X, eval_X, train_y, eval_y = preprocess_data("../datasets/others/http.csv", "attack", 100000)
 
-def preprocess_data(file_path: str, prediction_column: str, sample_size):
+    print("=== Begin training phase ===")
+    iforest = IsolationForest(train_X, 30, 256)
+    iforest.fit()
+    print(f"Training time: {iforest.training_time} seconds")
+    print("=== End training phase ===")
+    print()
+
+    print("=== Begin evaluation phase ===")
+    scores = iforest.score(eval_X, 5)
+    evaluation_end_time = time.time()
+    print(f"Score compute in: {iforest.evaluation_time} seconds")
+    print("=== End evaluation phase ===")
+
+    #threshold and prediction
+    threshold, _, _ = iforest.tpr_threshold(eval_y, scores, desired_tpr=.8)
+    prediction_y = iforest.predict_anomalies(scores, threshold)
+
+    # confusion matrix
+    fpr, tpr, _ = metrics.roc_curve(eval_y, prediction_y)
+    print(f"AUC: {metrics.auc(fpr, tpr)}")
+    confusion_matrix = metrics.confusion_matrix(eval_y, prediction_y)
+    cm_display = metrics.ConfusionMatrixDisplay(confusion_matrix=confusion_matrix, display_labels=[False, True])
+    cm_display.plot()
+    plt.show()
+
+def preprocess_data(file_path: str, prediction_column: str, sample_row_size=None, sample_column_size=None):
     df = pd.read_csv(file_path, sep=r'\s*,\s*', header=0, encoding='ascii', engine='python')
 
+    # drop column which contains categorical values and drop row with missing values
+    proc_df = df[df.select_dtypes(include=['float64', 'int64']).columns.tolist()].dropna()
+
     # randomly pre-sample dataset
-    if sample_size:
-        if df.shape[0] >= sample_size:
-            df = df.sample(sample_size)
+    if sample_row_size:
+        if proc_df.shape[0] >= sample_row_size:
+            proc_df = proc_df.sample(sample_row_size)
         else:
             print("sample size too high for dataframe")
             return
 
-    # drop column which contains categorical values and drop row with missing values
-    proc_df = df[df.select_dtypes(include=['float64', 'int64']).columns.tolist()].dropna()
+    if sample_column_size:
+        if sample_column_size <= proc_df.shape[1]:
+            proc_df = proc_df.sample(n=sample_column_size, axis='columns')
+        else:
+            print("not enough columns to do random features selection")
+            return
 
     train_X, eval_X, train_y, eval_y = None, None, None, None
 
@@ -144,6 +190,18 @@ def compute_auc(anomalies_labels, anomalies_scores):
     AUC = (S - ((true_anomalies_cnt ** 2 + true_anomalies_cnt) / 2)) / (true_anomalies_cnt * true_normal_points_cnt)
 
     return AUC
+
+def save_exp_data(exp_title: str, parameters: dict, forest_infos: dict, exp_results: dict):
+    file_name = exp_title + " " + datetime.now().strftime("%d-%m-%Y %H-%M-%S") + ".json"
+
+    file_content = {
+        "parameters": parameters,
+        "Forest infos": forest_infos,
+        "Experiment results": exp_results
+    }
+
+    with open(file_name, "w") as outfile:
+        json.dump(file_content, outfile)
 
 if __name__ == "__main__":
     main()

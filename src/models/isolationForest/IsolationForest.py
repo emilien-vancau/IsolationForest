@@ -15,15 +15,16 @@ from src.models.sample.Sample import Sample
 
 class IsolationForest(object):
 
-    def __init__(self, input_data, nb_tree, subsampling_size):
+    def __init__(self, input_data, tree_nb, subsampling_size):
         self.input_dataframe = input_data #store original dataframe
         self.input_features_set = None  # converted data used for building the forest in experimental mode
-        self.nb_tree = nb_tree #number of trees inside the forest
+        self.tree_nb = tree_nb #number of trees inside the forest
         self.height_limit = 0 #height limit of trees
         self.subsampling_size = subsampling_size #subsampling size of the forest
         self.tree_list = [] #store all the trees composing the forest
         self.training_time = 0
         self.evaluation_time = 0
+        self.total_nodes_nb = 0
 
     def init(self):
         """convert input dataframe to features set and sort them by ascending order"""
@@ -87,7 +88,7 @@ class IsolationForest(object):
         :return:
         '''
 
-        for i in range(0, self.nb_tree):
+        for i in range(0, self.tree_nb):
             # subsample the whole dataset
             sub_index = np.random.choice(input_values.shape[0], self.subsampling_size, replace=False)
             sub_values = input_values[sub_index]
@@ -95,6 +96,7 @@ class IsolationForest(object):
             # create a new tree and add it to the forest
             tree = IsolationTree(sub_values, self.height_limit)
             self.tree_list.append(tree)
+            self.total_nodes_nb += tree.inode_cnt + tree.ileaf_cnt
 
     def score(self, dataset, height_limit):
         '''
@@ -145,13 +147,13 @@ class IsolationForest(object):
             for row in dataset.values:
                 pathlength_row = []
                 for tree in self.tree_list:
-                    #pathlength = self.original_path_length(row, tree.root, height_limit, 1)
-                    pathlength = self.__path_length(row, tree.root)
+                    #pathlength = self.__original_path_length(row, tree.root, height_limit, 1)
+                    pathlength = self.__path_length(row, tree.root, height_limit)
                     pathlength_row.append(pathlength)
                 pathlengths_mean.append(stats.mean(pathlength_row))
             return pathlengths_mean
 
-    def __path_length(self, instance, inode):
+    def __path_length(self, instance, inode, height_limit):
         '''
 
         :param instance:
@@ -159,14 +161,14 @@ class IsolationForest(object):
         :return:
         '''
         depth = 0
-        while isinstance(inode, IsolationNode):
+        while isinstance(inode, IsolationNode) and depth <= height_limit:
             if instance[inode.feature_index] < inode.split_value:
                 inode = inode.left_child
             else:
                 inode = inode.right_child
             depth += 1
-        return depth + self.c(inode.size)
 
+        return depth + self.c(inode.size)
 
     def __original_path_length(self, instance, inode, height_limit, current_pathlength):
         """
@@ -230,7 +232,6 @@ class IsolationForest(object):
         print("unable to reach desired TPR")
         return
 
-
     def predict_anomalies(self, scores, threshold):
         '''
 
@@ -240,6 +241,18 @@ class IsolationForest(object):
         '''
 
         return np.array([1 if score > threshold else 0 for score in scores])
+
+    def get_parameters(self):
+        return {
+            "sampling size": self.input_dataframe.shape[0],
+            "features size": self.input_dataframe.shape[1],
+            "trees number": self.tree_nb,
+            "total nodes number": self.total_nodes_nb,
+            "height limit": self.height_limit,
+            "subsampling size": self.subsampling_size,
+            "training time": self.training_time,
+            "evaluation time": self.evaluation_time
+        }
 
     def c(self, size):
         if size > 2:

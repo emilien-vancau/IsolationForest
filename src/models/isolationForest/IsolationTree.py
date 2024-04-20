@@ -33,6 +33,7 @@ class IsolationTree(object):
         inode = IsolationNode(None,
                               selected_feature,
                               split_value,
+                              input_values.shape[0],
                               None)
         self.inode_cnt += 1
 
