@@ -98,13 +98,21 @@ class IsolationForest(object):
             self.tree_list.append(tree)
             self.total_nodes_nb += tree.inode_cnt + tree.ileaf_cnt
 
-    def score(self, dataset, height_limit):
+    def score(self, dataset, height_limit: int = 0):
         '''
 
         :param dataset:
         :param height_limit:
         :return:
         '''
+
+        if dataset is None:
+            print("no data to evaluate")
+            return
+
+        if height_limit == 0:
+            height_limit = self.height_limit
+            print(f"height limit parameter set to tree height limit as default value")
 
         if height_limit > self.height_limit:
             height_limit = self.height_limit
@@ -167,7 +175,6 @@ class IsolationForest(object):
             else:
                 inode = inode.right_child
             depth += 1
-
         return depth + self.c(inode.size)
 
     def __original_path_length(self, instance, inode, height_limit, current_pathlength):
@@ -208,7 +215,7 @@ class IsolationForest(object):
         threshold_index = int(percentile_percentage / 100 * len(sorted_scores))
         return sorted_scores[threshold_index]
 
-    def tpr_threshold(self, y, scores, desired_tpr):
+    def tpr_threshold(self, y, scores, desired_tpr=.9):
         '''
 
         :param y:
