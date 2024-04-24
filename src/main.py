@@ -18,19 +18,31 @@ from src.models.isolationForest.IsolationForest import IsolationForest
 
 def main():
     parameters = {
-        "data_path": "../datasets/others/http.csv",
+        "exp_name": "Http",
+        "data_path": "../datasets/kaggle/ddos/Friday-WorkingHours-Afternoon-DDos.pcap_ISCX.csv",
         "prediction_column": "attack",
-        "df_sampling_sizes": [.2, .4, .6, .8, 1],
-        "df_feature_sizes": [.2, .4, .6, .8, 1],
+        "df_sampling_ratios": [.2, .4, .6, .8, 1],
+        "df_feature_ratios": [.2, .4, .6, .8, 1],
         "forest_nb_trees": [10, 30, 50, 70, 90, 110, 130, 150, 170, 190, 210, 230, 250],
         "forest_subsampling_sizes": [128, 256, 512, 1024, 2048, 4096, 8192, 16384],
-        "pathlength_height_limit": [4, 8, 16, 32, 64, 128]
+        "pathlength_height_limit": [4, 8, 16, 32, 64, 128],
+        "desired_tpr": [.7, .75, .8, .85, .9, .95]
     }
 
-    run_experiment(exp_name="Http", file_path=parameters["data_path"], pred_column=parameters["prediction_column"],
-                   tree_nb=20, subsampling_size=256, pathlength_height_limit=10, df_sampling_size=100000,
-                   desired_tpr=.85,
-                   display_plot=True, is_plot_save=True)
+    # parameters = {
+    #     "exp_name": "Ddos",
+    #     "data_path": "../datasets/kaggle/ddos/Friday-WorkingHours-Afternoon-DDos.pcap_ISCX.csv",
+    #     "prediction_column": "Label",
+    #     "df_drop_columns": [""],
+    #     "df_sampling_ratios": [.2, .4, .6, .8, 1],
+    # }
+
+    run_experiment(parameters)
+
+    # iforest_experiment(exp_name=parameters["exp_name"], file_path=parameters["data_path"], pred_column=parameters["prediction_column"],
+    #                    tree_nb=20, subsampling_size=256, pathlength_height_limit=10, df_sampling_ratio=.2,
+    #                    desired_tpr=.85,
+    #                    display_plot=False, is_plot_save=True)
 
     # dataset preprocess
     # #train_X, eval_X, _, _ = preprocess_data("../datasets/kaggle/financal_Data/BBCA.JK_weekly_new.csv", None)
@@ -57,11 +69,61 @@ def main():
     # print(scores2)
 
 
-def run_experiment(exp_name: str, file_path: str, pred_column: str, tree_nb: int = 20, subsampling_size: int = 256, pathlength_height_limit: int = None,
-                   df_sampling_size: int = None, df_features_size: int = None, desired_tpr: float = None,
-                   display_plot: bool = False, is_plot_save: bool = False):
+def run_experiment(parameters: dict):
 
-    train_X, eval_X, train_y, eval_y = __preprocess_data(file_path, pred_column, df_sampling_size, df_features_size)
+    if "df_sampling_ratios" in parameters:
+        for samp_ratio in parameters["df_sampling_ratios"]:
+            exp_name = parameters["exp_name"] + f" sr-{samp_ratio}"
+            iforest_experiment(exp_name=exp_name, file_path=parameters["data_path"],
+                               pred_column=parameters["prediction_column"],
+                               df_sampling_ratio=samp_ratio,
+                               desired_tpr=.95,
+                               display_plot=False, is_plot_save=True)
+
+    if "df_feature_ratios" in parameters:
+        for feature_ratio in parameters["df_feature_ratios"]:
+            exp_name = parameters["exp_name"] + f" fr-{feature_ratio}"
+            iforest_experiment(exp_name=exp_name, file_path=parameters["data_path"],
+                               pred_column=parameters["prediction_column"],
+                               df_features_ratio=feature_ratio,
+                               desired_tpr=.85,
+                               display_plot=False, is_plot_save=True)
+
+
+    if "forest_nb_trees" in parameters:
+        for nb_tree in parameters["forest_nb_trees"]:
+            exp_name = parameters["exp_name"] + f" nbt-{nb_tree}"
+            iforest_experiment(exp_name=exp_name, file_path=parameters["data_path"],
+                               pred_column=parameters["prediction_column"],
+                               tree_nb=nb_tree,
+                               desired_tpr=.85,
+                               display_plot=False, is_plot_save=True)
+
+    if "forest_subsampling_sizes" in parameters:
+        for subsamp_size in parameters["forest_subsampling_sizes"]:
+            exp_name = parameters["exp_name"] + f" sss-{subsamp_size}"
+            iforest_experiment(exp_name=exp_name, file_path=parameters["data_path"],
+                               pred_column=parameters["prediction_column"],
+                               subsampling_size=subsamp_size,
+                               desired_tpr=.85,
+                               display_plot=False, is_plot_save=True)
+
+    if "pathlength_height_limit" in parameters:
+        for hl in parameters["pathlength_height_limit"]:
+            exp_name = parameters["exp_name"] + f" hl-{hl}"
+            iforest_experiment(exp_name=exp_name, file_path=parameters["data_path"],
+                               pred_column=parameters["prediction_column"],
+                               pathlength_height_limit=hl,
+                               desired_tpr=.85,
+                               display_plot=False, is_plot_save=True)
+
+
+def iforest_experiment(exp_name: str, file_path: str, pred_column: str, tree_nb: int = 20, subsampling_size: int = 256,
+                       pathlength_height_limit: int = 0,
+                       df_sampling_ratio: float = None, df_features_ratio: float = None, desired_tpr: float = None,
+                       display_plot: bool = False, is_plot_save: bool = False):
+
+    train_X, eval_X, train_y, eval_y = __preprocess_data(file_path, pred_column, df_sampling_ratio, df_features_ratio)
 
     print("===- Begin training phase -===")
     iforest = IsolationForest(train_X, tree_nb, subsampling_size)
@@ -85,17 +147,19 @@ def run_experiment(exp_name: str, file_path: str, pred_column: str, tree_nb: int
     fpr, tpr, _ = metrics.roc_curve(eval_y, prediction_y)
     auc = metrics.roc_auc_score(eval_y, prediction_y)
     print(f"AUC: {auc}")
+    print()
 
     exp_parameters = {
         "prediction feature": pred_column,
-        "sampling size": df_sampling_size,
-        "feature size": df_features_size,
+        "pre-processing sampling size": df_sampling_ratio,
+        "pre-processing feature size": df_features_ratio,
         "trees number": tree_nb,
         "subsampling size": subsampling_size,
         "pathlength height limit": pathlength_height_limit
     }
 
     exp_results = {
+        "evaluation dataset size": eval_y.shape[0],
         "AUC": auc,
         "TPR": tpr[1],
         "FPR": fpr[1],
@@ -103,7 +167,7 @@ def run_experiment(exp_name: str, file_path: str, pred_column: str, tree_nb: int
         "total time": iforest.training_time + iforest.evaluation_time,
     }
 
-    figure = __create_plot(auc, eval_y, exp_name, fpr, prediction_y, tpr, is_plot_save)
+    figure = __create_exp_plot(auc, eval_y, exp_name, fpr, prediction_y, tpr, is_plot_save)
 
     if display_plot:
         plt.show()
@@ -111,7 +175,7 @@ def run_experiment(exp_name: str, file_path: str, pred_column: str, tree_nb: int
     __save_exp_data(exp_name, exp_parameters, iforest.get_parameters(), exp_results, figure)
 
 
-def __create_plot(auc, eval_y, exp_name, fpr, prediction_y, tpr, is_plot_save):
+def __create_exp_plot(auc, eval_y, exp_name, fpr, prediction_y, tpr, is_plot_save):
     # display confusion matrix and ROC curve
     confusion_matrix = metrics.confusion_matrix(eval_y, prediction_y)
     cm_display = metrics.ConfusionMatrixDisplay(confusion_matrix=confusion_matrix, display_labels=[False, True])
@@ -131,26 +195,30 @@ def __create_plot(auc, eval_y, exp_name, fpr, prediction_y, tpr, is_plot_save):
     return
 
 
-def __preprocess_data(file_path: str, prediction_column: str, sample_row_size=None, sample_column_size=None):
+def get_size_ratio(size: int, ratio: float):
+    if 0 < ratio <= 1:
+        return round(size * ratio)
+    print("ratio should be between 0 (exclude) and 1")
+    return
+
+
+def __preprocess_data(file_path: str, prediction_column: str, sample_row_ratio=None, sample_column_ratio=None):
     df = pd.read_csv(file_path, sep=r'\s*,\s*', header=0, encoding='ascii', engine='python')
 
     # drop column which contains categorical values and drop row with missing values
     proc_df = df[df.select_dtypes(include=['float64', 'int64']).columns.tolist()].dropna()
 
     # randomly pre-sample dataset
-    if sample_row_size:
-        if proc_df.shape[0] >= sample_row_size:
-            proc_df = proc_df.sample(sample_row_size)
-        else:
-            print("sample size too high for dataframe")
-            return
+    if sample_row_ratio:
+        sample_row = get_size_ratio(proc_df.shape[0], sample_row_ratio)
+        proc_df = proc_df.sample(sample_row)
 
-    if sample_column_size:
-        if sample_column_size <= proc_df.shape[1]:
-            proc_df = proc_df.sample(n=sample_column_size, axis='columns')
-        else:
-            print("not enough columns to do random features selection")
-            return
+    if sample_column_ratio:
+        sample_column = get_size_ratio(proc_df.shape[1], sample_column_ratio)
+        if sample_column < 2:
+            sample_column = 2
+            print("not enough columns to perform isolation processing, sample column set to 2")
+        proc_df = proc_df.sample(sample_column, axis="columns")
 
     train_X, eval_X, train_y, eval_y = None, None, None, None
 
