@@ -24,6 +24,8 @@ def main():
         "data_path": "../datasets/others/http.csv",
         "prediction_column": "attack",
         "df_sampling_ratios": [.2, .4, .6, .8, 1],
+        "forest_nb_trees": [5, 10, 20, 40, 80, 160, 320],
+        "desired_tpr": .9
     }
 
     # parameters = {
@@ -34,12 +36,12 @@ def main():
     #     "df_sampling_ratios": [.2, .4, .6, .8, 1],
     # }
 
-    run_experiment(parameters)
+    #run_experiment(parameters)
 
-    # iforest_experiment(exp_name=parameters["exp_name"], file_path=parameters["data_path"], pred_column=parameters["prediction_column"],
-    #                    nb_tree=20, subsampling_size=256, pathlength_height_limit=10, df_sampling_ratio=.2,
-    #                    desired_tpr=.85,
-    #                    display_plot=False, is_plot_save=True)
+    iforest_experiment(exp_name=parameters["exp_name"], file_path=parameters["data_path"], pred_column=parameters["prediction_column"],
+                       nb_tree=20, subsampling_size=256, pathlength_height_limit=10, df_sampling_ratio=.2,
+                       desired_tpr=.85,
+                       display_plot=False, plot_save=True)
 
     # dataset preprocess
     # #train_X, eval_X, _, _ = preprocess_data("../datasets/kaggle/financal_Data/BBCA.JK_weekly_new.csv", None)
@@ -67,16 +69,40 @@ def main():
 
 
 def run_experiment(parameters: dict):
+    param_mappings = {
+        "df_sampling_ratios": "df_sampling_ratio",
+        "df_feature_ratios": "df_features_ratio",
+        "forest_nb_trees": "nb_tree",
+        "forest_subsampling_sizes": "subsampling_size",
+        "pathlength_height_limit": "pathlength_height_limit"
+    }
+
+    for param_key, param_name in param_mappings.items():
+        if param_key in parameters:
+            auc_results = []
+            time_results = []
+            for value in parameters[param_key]:
+                exp_name = parameters["exp_name"] + f" {param_name}-{value}"
+                result = iforest_experiment(exp_name=exp_name, file_path=parameters["data_path"],
+                                            pred_column=parameters["prediction_column"],
+                                            plot_save=True,
+                                            desired_tpr=parameters.get("desired_tpr", .85), **{param_name: value})
+                auc_results.append(result["AUC"])
+                time_results.append(result["total time"])
+            __auc_time_plot(auc_results, time_results, param_name, parameters[param_key])
+
+
+def run_experiment_old(parameters: dict):
     if "df_sampling_ratios" in parameters:
         auc_results = []
         time_results = []
         for samp_ratio in parameters["df_sampling_ratios"]:
             exp_name = parameters["exp_name"] + f" sr-{samp_ratio}"
             results = iforest_experiment(exp_name=exp_name, file_path=parameters["data_path"],
-                               pred_column=parameters["prediction_column"],
-                               df_sampling_ratio=samp_ratio,
-                               desired_tpr=.95,
-                               display_plot=False, is_plot_save=True)
+                                         pred_column=parameters["prediction_column"],
+                                         df_sampling_ratio=samp_ratio,
+                                         desired_tpr=.95,
+                                         display_plot=False, plot_save=True)
 
             auc_results.append(results["AUC"])
             time_results.append(results["total time"])
@@ -84,46 +110,82 @@ def run_experiment(parameters: dict):
         __auc_time_plot(auc_results, time_results, parameters["df_sampling_ratios"])
 
     if "df_feature_ratios" in parameters:
+        auc_results = []
+        time_results = []
         for feature_ratio in parameters["df_feature_ratios"]:
             exp_name = parameters["exp_name"] + f" fr-{feature_ratio}"
-            iforest_experiment(exp_name=exp_name, file_path=parameters["data_path"],
-                               pred_column=parameters["prediction_column"],
-                               df_features_ratio=feature_ratio,
-                               desired_tpr=.85,
-                               display_plot=False, is_plot_save=True)
+            results = iforest_experiment(exp_name=exp_name, file_path=parameters["data_path"],
+                                         pred_column=parameters["prediction_column"],
+                                         df_features_ratio=feature_ratio,
+                                         desired_tpr=.85,
+                                         display_plot=False, plot_save=True)
+
+            auc_results.append(results["AUC"])
+            time_results.append(results["total time"])
+
+        __auc_time_plot(auc_results, time_results, parameters["df_feature_ratios"])
 
     if "forest_nb_trees" in parameters:
+        auc_results = []
+        time_results = []
         for nb_tree in parameters["forest_nb_trees"]:
             exp_name = parameters["exp_name"] + f" nbt-{nb_tree}"
-            iforest_experiment(exp_name=exp_name, file_path=parameters["data_path"],
-                               pred_column=parameters["prediction_column"],
-                               nb_tree=nb_tree,
-                               desired_tpr=.85,
-                               display_plot=False, is_plot_save=True)
+            results = iforest_experiment(exp_name=exp_name, file_path=parameters["data_path"],
+                                         pred_column=parameters["prediction_column"],
+                                         nb_tree=nb_tree,
+                                         desired_tpr=.85,
+                                         display_plot=False, plot_save=True)
+
+            auc_results.append(results["AUC"])
+            time_results.append(results["total time"])
+
+        __auc_time_plot(auc_results, time_results, parameters["forest_nb_trees"])
 
     if "forest_subsampling_sizes" in parameters:
+        auc_results = []
+        time_results = []
         for subsamp_size in parameters["forest_subsampling_sizes"]:
             exp_name = parameters["exp_name"] + f" sss-{subsamp_size}"
-            iforest_experiment(exp_name=exp_name, file_path=parameters["data_path"],
-                               pred_column=parameters["prediction_column"],
-                               subsampling_size=subsamp_size,
-                               desired_tpr=.85,
-                               display_plot=False, is_plot_save=True)
+            results = iforest_experiment(exp_name=exp_name, file_path=parameters["data_path"],
+                                         pred_column=parameters["prediction_column"],
+                                         subsampling_size=subsamp_size,
+                                         desired_tpr=.85,
+                                         display_plot=False, plot_save=True)
+
+            auc_results.append(results["AUC"])
+            time_results.append(results["total time"])
+
+        __auc_time_plot(auc_results, time_results, parameters["forest_subsampling_sizes"])
 
     if "pathlength_height_limit" in parameters:
+        auc_results = []
+        time_results = []
         for hl in parameters["pathlength_height_limit"]:
             exp_name = parameters["exp_name"] + f" hl-{hl}"
-            iforest_experiment(exp_name=exp_name, file_path=parameters["data_path"],
-                               pred_column=parameters["prediction_column"],
-                               pathlength_height_limit=hl,
-                               desired_tpr=.85,
-                               display_plot=False, is_plot_save=True)
+            results = iforest_experiment(exp_name=exp_name, file_path=parameters["data_path"],
+                                         pred_column=parameters["prediction_column"],
+                                         pathlength_height_limit=hl,
+                                         desired_tpr=.85,
+                                         display_plot=False, plot_save=True)
+
+            auc_results.append(results["AUC"])
+            time_results.append(results["total time"])
+
+        __auc_time_plot(auc_results, time_results, parameters["pathlength_height_limit"])
 
 
 def iforest_experiment(exp_name: str, file_path: str, pred_column: str, nb_tree: int = 20, subsampling_size: int = 256,
-                       pathlength_height_limit: int = 0,
-                       df_sampling_ratio: float = None, df_features_ratio: float = None, desired_tpr: float = None,
-                       display_plot: bool = False, is_plot_save: bool = False) -> dict:
+                        pathlength_height_limit: int = 0,
+                        df_sampling_ratio: float = None, df_features_ratio: float = None, desired_tpr: float = None,
+                        plot_save: bool = False) -> dict:
+
+    print(f"Running experiment {exp_name} with the following parameters\n"
+          f"- Prediction feature: {pred_column}\n"
+          f"- Row sampling ratio {df_sampling_ratio}\n"
+          f"- Column sampling ratio {df_features_ratio}\n"
+          f"- Number of trees: {nb_tree}\n"
+          f"- Subsampling size: {subsampling_size}\n"
+          f"- Pathlength height limit: {pathlength_height_limit} nodes\n")
 
     train_X, eval_X, train_y, eval_y = preprocess_data(file_path, pred_column, df_sampling_ratio, df_features_ratio)
 
@@ -176,38 +238,48 @@ def iforest_experiment(exp_name: str, file_path: str, pred_column: str, nb_tree:
         "total time": iforest.training_time + iforest.evaluation_time,
     }
 
-    figure = __results_plot(auc, eval_y, exp_name, fpr, prediction_y, tpr)
-    #__anomaly_pairplot(eval_X)
-
-    if display_plot:
-        plt.show()
-
-    # normal = scores[eval_y == 0]
-    # anomalies = scores[eval_y == 1]
-    #
-    # fig, axes = plt.subplots(2, 1, sharex=True)
-    # counts0, binlocs0, _ = axes[0].hist(normal, color='green', bins=20)
-    # counts1, binlocs1, _ = axes[1].hist(anomalies, color='red', bins=20)
-    # axes[1].set_xlabel("Anomaly score")
-    # axes[0].set_ylabel("Normal sample count")
-    # axes[1].set_ylabel("Anomalous sample count")
-    # axes[0].plot([threshold, threshold], [0, max(counts0)], '--', color='grey')
-    # axes[1].plot([threshold, threshold], [0, max(counts1)], '--', color='grey')
-    # text_xr = 0.97 * axes[0].get_xlim()[1]
-    # axes[0].text(text_xr, .85 * max(counts0), f"N {train_X.shape[0]}, {nb_tree} trees", horizontalalignment='right')
-    # axes[0].text(text_xr, .75 * max(counts0), f"F1 score {f1_score:.4f}, avg PR {PR:.4f}", horizontalalignment='right')
-    # axes[0].text(text_xr, .65 * max(counts0), f"TPR {tpr[1]:.4f}, FPR {fpr[1]:.4f}", horizontalalignment='right')
-    # axes[0].text(threshold + .005, .20 * max(counts0), f"score threshold {threshold:.3f}")
-    # axes[0].text(threshold + .005, .10 * max(counts0), f"True anomaly rate {len(anomalies) / len(normal):.4f}")
-    #
-    # plt.show()
+    figure = __auc_roc_plot(auc, eval_y, exp_name, fpr, prediction_y, tpr)
+    fig = __anomalies_histogram_plot(scores, eval_y, threshold)
 
     __save_exp_data(exp_name, exp_parameters, iforest.get_parameters(), exp_results, figure)
 
     return exp_results
 
 
-def __results_plot(auc, eval_y, exp_name, fpr, prediction_y, tpr):
+def __anomalies_histogram_plot(scores, y, anomaly_threshold):
+    normal = scores[y == 0]
+    anomalies = scores[y == 1]
+
+    fig, axes = plt.subplots(2, 1, sharex=True, figsize=(10, 5))
+
+    axes[0].hist(normal, color="green", alpha=.7)
+    axes[1].hist(anomalies, color="red", alpha=.7)
+
+    # Limite l'axe X entre 0 et 1
+    axes[0].set_xlim(0, 1)
+    axes[1].set_xlim(0, 1)
+
+    # Augmente la précision d'affichage de l'axe X
+    axes[0].xaxis.set_major_locator(plt.MultipleLocator(0.05))
+    axes[1].xaxis.set_major_locator(plt.MultipleLocator(0.05))
+
+    # Trace une ligne à la position du seuil d'anomalie
+    axes[0].axvline(x=anomaly_threshold, color='gray', linestyle='--')
+    axes[1].axvline(x=anomaly_threshold, color='gray', linestyle='--')
+
+    axes[1].text(anomaly_threshold, 10, f'Threshold: {anomaly_threshold}', color='black')
+
+    axes[1].set_xlabel("anomaly scores")
+    axes[0].set_ylabel("normal samples counter")
+    axes[1].set_ylabel("anomaly samples counter")
+
+    fig.suptitle("Anomalies histogram")
+
+    return fig
+
+
+def __auc_roc_plot(auc, eval_y, exp_name, fpr, prediction_y, tpr):
+
     # display confusion matrix and ROC curve
     confusion_matrix = metrics.confusion_matrix(eval_y, prediction_y)
     cm_display = metrics.ConfusionMatrixDisplay(confusion_matrix=confusion_matrix, display_labels=[False, True])
@@ -231,21 +303,30 @@ def __anomaly_pairplot(proc_df: DataFrame):
     df = pd.concat([normal_points, anomaly_points])
 
     pairplot = sns.pairplot(df, hue="Anomaly prediction")
-    plt.show()
+    figure = pairplot.figure
+
+    return figure
 
 
-def __auc_time_plot(auc_results, time_results, options):
+def __auc_time_plot(auc_results, time_results, param_name, param_array):
 
-    plt.plot(options, time_results, label='Temps', marker='o')
-    plt.plot(options, auc_results, label='AUC', marker='o')
+    fig, ax1 = plt.subplots()
+    ax2 = ax1.twinx()
+    fig.suptitle(f"AUC/TIME title")
 
-    plt.title('Relation entre le nombre d\'arbres, le temps et l\'AUC')
-    plt.xlabel('Nombre d\'arbres')
-    plt.ylabel('Temps / AUC')
-    plt.legend()
+    ax1.plot(param_array, time_results, color="#69b3a2", label='Temps', marker='o')
+    ax2.plot(param_array, auc_results, color="#3399e6", label='AUC', marker='o')
 
-    plt.grid(True)
-    plt.show()
+    ax1.tick_params(axis="y", labelcolor="#69b3a2")
+    ax2.tick_params(axis="y", labelcolor="#3399e6")
+
+    ax1.set_xlabel(f"Parameter: {param_name}")
+    ax1.set_ylabel("Time (s)")
+    ax2.set_ylabel("AUC")
+    #fig.grid(True)
+
+    return fig
+
 
 def get_size_ratio(size: int, ratio: float):
     if 0 < ratio <= 1:
@@ -320,7 +401,7 @@ def compute_auc(anomalies_labels, anomalies_scores):
 
 
 def __save_exp_data(exp_title: str, exp_parameters: dict, forest_infos: dict, exp_results: dict,
-                    exp_figure: Figure = None):
+                    exp_figures: dict = None):
     new_folder_name = exp_title + " " + datetime.now().strftime("%d-%m-%Y %H-%M-%S")
     folder_path = "./experiments results/" + new_folder_name
     os.makedirs(folder_path)
@@ -337,10 +418,18 @@ def __save_exp_data(exp_title: str, exp_parameters: dict, forest_infos: dict, ex
     with open(jsonpath, "w") as outfile:
         json.dump(file_content, outfile)
 
-    if exp_figure:
-        figure_results = "experiment_figure.png"
-        figurepath = os.path.join(folder_path, figure_results)
-        exp_figure.savefig(figurepath)
+    if exp_figures:
+        for key, fig in exp_figures.items():
+            __save_exp_figure(fig, folder_path, key)
+            
+        # figure_results = "experiment_figure.png"
+        # figurepath = os.path.join(folder_path, figure_results)
+        # exp_figures.savefig(figurepath)
+
+
+def __save_exp_figure(figure: Figure, path: str, figure_name: str):
+    figurepath = os.path.join(path, figure_name)
+    figure.savefig(figurepath)
 
 
 if __name__ == "__main__":

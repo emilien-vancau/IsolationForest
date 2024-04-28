@@ -3,6 +3,7 @@ import statistics as stats
 import time
 
 import numpy as np
+from pandas import DataFrame
 from sklearn import metrics
 
 from src.models.feature.Feature import Feature
@@ -98,7 +99,7 @@ class IsolationForest(object):
             self.tree_list.append(tree)
             self.total_nodes_nb += tree.inode_cnt + tree.ileaf_cnt
 
-    def score(self, dataset, height_limit: int = 0):
+    def score(self, dataset: DataFrame, height_limit: int = 0):
         '''
 
         :param dataset:
