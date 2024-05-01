@@ -16,6 +16,8 @@ import seaborn as sns
 
 from sklearn.ensemble import IsolationForest as IF
 from src.models.isolationForest.IsolationForest import IsolationForest
+from sklearn.neighbors import LocalOutlierFactor
+
 
 EXPERIMENT_FILEPATH = "./experiments results/"
 
@@ -51,7 +53,7 @@ def main():
     }
 
     #run_experiment(http_parameters)
-    run_experiment(cancer_parameters)
+    #run_iforest_experiment(cancer_parameters)
 
     # parameters = {
     #     "exp_name": "Ddos",
@@ -85,15 +87,91 @@ def main():
     # # print(eval_y.sort_values(by='anomaly score', ascending=False))
     #
 
+    #scatter_exemple()
+
     print("-------------------------------------------------------------------")
 
-    # clf = IF(n_estimators=300, max_samples=256, warm_start=True, random_state=0)
-    # clf.fit(train_X)
-    # scores2 = clf.decision_function(eval_X)
-    # print(scores2)
+    sklearn_iforest(http_parameters["data_path"], http_parameters["prediction_column"])
+    #lof_experiment(http_parameters["data_path"], http_parameters["prediction_column"])
 
 
-def run_experiment(parameters: dict):
+def scatter_exemple():
+    n_samples, n_outliers = 120, 40
+    rng = np.random.RandomState(0)
+    covariance = np.array([[0.5, -0.1], [0.7, 0.4]])
+    cluster_1 = 0.4 * rng.randn(n_samples, 2) @ covariance + np.array([2, 2])  # general
+    cluster_2 = 0.3 * rng.randn(n_samples, 2) + np.array([-2, -2])  # spherical
+    outliers = rng.uniform(low=-4, high=4, size=(n_outliers, 2))
+    X = np.concatenate([cluster_1, cluster_2, outliers])
+    y = np.concatenate(
+        [np.ones((2 * n_samples), dtype=int), -np.ones((n_outliers), dtype=int)]
+    )
+    X_train, X_test, y_train, y_test = train_test_split(X, y, stratify=y, random_state=42)
+    scatter = plt.scatter(X[:, 0], X[:, 1], c=y, s=20, edgecolor="k")
+    handles, labels = scatter.legend_elements()
+    plt.axis("square")
+    plt.legend(handles=handles, labels=["outliers", "inliers"], title="true class")
+    plt.title("Gaussian inliers with \nuniformly distributed outliers")
+    plt.show()
+
+
+def sklearn_iforest(file_path: str, pred_column: str, nb_tree: int = 20, subsampling_size: int = 256, df_sampling_ratio: float = None, df_features_ratio: float = None):
+
+    train_X, eval_X, train_y, eval_y = preprocess_data(file_path, pred_column, df_sampling_ratio, df_features_ratio)
+
+    start_train_time = time.time()
+    clf = IF(n_estimators=nb_tree, max_samples=subsampling_size, warm_start=True, random_state=0)
+
+    #training
+    clf.fit(train_X)
+    end_train_time = time.time()
+
+    #evaluation
+    start_eval_time = time.time()
+    scores = clf.decision_function(eval_X)
+    pred_y = clf.predict(eval_X)
+    end_eval_time = time.time()
+
+    pred_y[pred_y == 1] = 0
+    pred_y[pred_y == -1] = 1
+
+    auc = metrics.roc_auc_score(eval_y, pred_y)
+    f1_score = metrics.f1_score(eval_y, pred_y)
+
+    print(f"AUC: {auc}")
+    print(f"F1 score: {f1_score}")
+
+
+def lof_experiment(file_path: str, pred_column: str, n_neighbors: int = 20, df_sampling_ratio: float = None, df_features_ratio: float = None):
+
+    train_X, eval_X, train_y, eval_y = preprocess_data(file_path, pred_column, df_sampling_ratio, df_features_ratio)
+
+    #clf = LocalOutlierFactor(n_neighbors=n_neighbors, novelty=True, contamination=0.1)
+    clf = LocalOutlierFactor(n_neighbors=n_neighbors, contamination=0.1)
+
+    #training
+    pred = clf.fit_predict(train_X)
+
+    #evaluation
+    #X_scores = clf.negative_outlier_factor_
+
+    pred[pred == 1] = 0
+    pred[pred == -1] = 1
+
+    auc = metrics.roc_auc_score(train_y, pred)
+    f1_score = metrics.f1_score(train_y, pred)
+
+    print(f"AUC: {auc}")
+    print(f"F1 score: {f1_score}")
+
+    #print(X_scores)
+
+
+def svm_experiment(file_path: str, pred_column: str, kernel: str, nu: float, df_sampling_ratio: float = None, df_features_ratio: float = None):
+    pass
+
+
+def run_iforest_experiment(parameters: dict):
     param_mappings = {
         "df_sampling_ratios": "df_sampling_ratio",
         "df_feature_ratios": "df_features_ratio",
@@ -245,8 +323,11 @@ def iforest_experiment(exp_name: str, file_path: str, pred_column: str, nb_tree:
         print("Performing Anomaly histogram")
         anomalies_hist_fig = __anomalies_histogram_plot(scores, eval_y, threshold)
     if pairplot:
-        print("Performing Scatter matrix plot (pairplot)")
-        pairplot_fig = __anomaly_pairplot(eval_X)
+        if eval_X.shape[1] <=5:
+            print("Performing Scatter matrix plot (pairplot)")
+            pairplot_fig = __anomaly_pairplot(eval_X)
+        else:
+            print("unable to perform scatter matrix because of the high number of features")
 
     exp_parameters = {
         "prediction feature": pred_column,
@@ -460,10 +541,6 @@ def __save_exp_data(exp_title: str, exp_parameters: dict, forest_infos: dict, ex
         for key, fig in exp_figures.items():
             if fig:
                 __save_exp_figure(fig, folder_path, key)
-
-        # figure_results = "experiment_figure.png"
-        # figurepath = os.path.join(folder_path, figure_results)
-        # exp_figures.savefig(figurepath)
 
 
 def __save_exp_figure(figure: Figure, path: str, figure_name: str):
