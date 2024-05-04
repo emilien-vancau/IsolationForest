@@ -25,7 +25,7 @@ EXPERIMENT_FILEPATH = "./experiments results/"
 def main():
     http_parameters = {
         "exp_name": "Http",
-        "data_path": "../datasets/others/http.csv",
+        "data_path": "../datasets/sklearn/http.csv",
         "prediction_column": "attack",
         "df_sampling_ratios": [.2, .4, .6, .8, 1],
         "forest_nb_trees": [3, 5, 7, 9, 13, 17, 21, 25, 35, 55, 95, 150, 250],
@@ -40,7 +40,7 @@ def main():
 
     cancer_parameters = {
         "exp_name": "Cancer",
-        "data_path": "../datasets/others/cancer.csv",
+        "data_path": "../datasets/sklearn/cancer.csv",
         "prediction_column": "diagnosis",
         "df_sampling_ratios": [.2, .4, .6, .8, 1],
         "forest_nb_trees": [3, 5, 7, 9, 13, 17, 21, 25, 35, 55, 95, 150, 250],
@@ -88,7 +88,7 @@ def main():
 
     # dataset preprocess
     # #train_X, eval_X, _, _ = preprocess_data("../datasets/kaggle/financal_Data/BBCA.JK_weekly_new.csv", None)
-    # train_X, eval_X, train_y, eval_y = preprocess_data("../datasets/others/http.csv", "attack", .2)
+    # train_X, eval_X, train_y, eval_y = preprocess_data("../datasets/sklearn/http.csv", "attack", .2)
     # #train_X, eval_X, train_y, eval_y = preprocess_data("../datasets/kaggle/ddos/Friday-WorkingHours-Afternoon-DDos.pcap_ISCX.csv", "Label")
     #
     # # print(list(financal_data.columns.values)) #get columns name
