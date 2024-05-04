@@ -252,6 +252,7 @@ class IsolationForest(object):
 
     def get_parameters(self):
         return {
+            "model name": "iForest",
             "training dataset size": self.input_dataframe.shape[0],
             "features size": self.input_dataframe.shape[1],
             "trees number": self.tree_nb,
