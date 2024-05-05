@@ -15,5 +15,3 @@ class IsolationNode(object):
     def set_right_child(self, inode):
         self.right_child = inode
 
-    # def is_leaf(self):
-    #     return self.left_child is None and self.right_child is None

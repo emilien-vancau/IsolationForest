@@ -17,6 +17,16 @@ class IsolationTree(object):
         #self.root = self.__create_experimental(0, self.input_data) #call create_experimental method which will create the whole tree recursively
 
     def __create(self, depth, input_values):
+        """
+            Recursively create isolation tree nodes.
+
+            Args:
+                depth (int): Current depth in the tree.
+                input_values (numpy.ndarray): Input values for creating the tree.
+
+            Returns:
+                IsolationNode or IsolationLeaf: Root node of the subtree.
+        """
 
         # cut recursion when depth over height limit or if no data left in feature set
         if depth >= self.height_limit or input_values.shape[0] <= 1:
@@ -48,7 +58,16 @@ class IsolationTree(object):
         return inode
 
     def __create_experimental(self, depth, input_data):
-        '''this method is experimental'''
+        """
+            Recursively create isolation tree nodes using experimental method.
+
+            Args:
+                depth (int): Current depth in the tree.
+                input_data (FeaturesSet): Feature set for creating the tree.
+
+            Returns:
+                IsolationNode or IsolationLeaf: Root node of the subtree.
+        """
 
         #cut recursion when depth over height limit or if no data left in feature set
         if depth >= self.height_limit or input_data.size <=1:
@@ -75,6 +94,16 @@ class IsolationTree(object):
         return inode
 
     def split_features_set(self, input_data, split_index):
+        """
+            Split the feature set based on the given split index.
+
+            Args:
+                input_data (FeaturesSet): Feature set to be split.
+                split_index (int): Index of the split point.
+
+            Returns:
+                tuple: A tuple containing the left and right feature sets after the split.
+        """
 
         max_left_size = 0
         max_right_size = 0
