@@ -8,7 +8,7 @@ import numpy as np
 import pandas as pd
 from pandas import DataFrame
 
-from sklearn.model_selection import train_test_split
+from sklearn.model_selection import train_test_split, StratifiedShuffleSplit
 from sklearn import metrics
 import matplotlib.pyplot as plt
 from matplotlib.figure import Figure
@@ -42,11 +42,11 @@ def main():
         "exp_name": "Cancer",
         "data_path": "../datasets/sklearn/cancer.csv",
         "prediction_column": "diagnosis",
-        "df_sampling_ratios": [.2, .4, .6, .8, 1],
+        #"df_sampling_ratios": [.2, .4, .6, .8, 1],
         "forest_nb_trees": [3, 5, 7, 9, 13, 17, 21, 25, 35, 55, 95, 150, 250],
-        "forest_subsampling_sizes": [128, 256, 512, 1024, 2048, 4096, 8192, 16384],
-        "tree_height_limit": [4, 8, 16, 32, 64, 128],
-        "pathlength_height_limit": [4, 8, 16, 32, 64, 128],
+        #"forest_subsampling_sizes": [128, 256, 512, 1024, 2048, 4096, 8192, 16384],
+        #"tree_height_limit": [4, 8, 16, 32, 64, 128],
+        #"pathlength_height_limit": [4, 8, 16, 32, 64, 128],
         "desired_tpr": .9,
         "auc_roc_plot": True,
         "anomaly_histogram_plot": True,
@@ -68,7 +68,112 @@ def main():
         "pair_plot": False
     }
 
-    #run_experiment(http_parameters)
+    iris_parameters = {
+        "exp_name": "Iris",
+        "data_path": "../datasets/sklearn/iris.csv",
+        "prediction_column": "class",
+        "df_sampling_ratios": [.2, .4, .6, .8, 1],
+        "forest_nb_trees": [3, 5, 7, 9, 13, 17, 21, 25, 35, 55, 95, 150, 250],
+        "forest_subsampling_sizes": [128, 256, 512, 1024, 2048, 4096, 8192, 16384],
+        "tree_height_limit": [4, 8, 16, 32, 64, 128],
+        "pathlength_height_limit": [4, 8, 16, 32, 64, 128],
+        "desired_tpr": .9,
+        "auc_roc_plot": True,
+        "anomaly_histogram_plot": True,
+        "pair_plot": False
+    }
+
+    wines_parameters = {
+        "exp_name": "Wines",
+        "data_path": "../datasets/sklearn/wines.csv",
+        "prediction_column": "class",
+        "df_sampling_ratios": [.2, .4, .6, .8, 1],
+        "forest_nb_trees": [3, 5, 7, 9, 13, 17, 21, 25, 35, 55, 95, 150, 250],
+        "forest_subsampling_sizes": [128, 256, 512, 1024, 2048, 4096, 8192, 16384],
+        "tree_height_limit": [4, 8, 16, 32, 64, 128],
+        "pathlength_height_limit": [4, 8, 16, 32, 64, 128],
+        "desired_tpr": .9,
+        "auc_roc_plot": True,
+        "anomaly_histogram_plot": True,
+        "pair_plot": False
+    }
+
+    smtp_parameters = {
+        "exp_name": "Smtp",
+        "data_path": "../datasets/sklearn/smtp.csv",
+        "prediction_column": "label",
+        "df_sampling_ratios": [.2, .4, .6, .8, 1],
+        "forest_nb_trees": [3, 5, 7, 9, 13, 17, 21, 25, 35, 55, 95, 150, 250],
+        "forest_subsampling_sizes": [128, 256, 512, 1024, 2048, 4096, 8192, 16384],
+        "tree_height_limit": [4, 8, 16, 32, 64, 128],
+        "pathlength_height_limit": [4, 8, 16, 32, 64, 128],
+        "desired_tpr": .9,
+        "auc_roc_plot": True,
+        "anomaly_histogram_plot": True,
+        "pair_plot": False
+    }
+
+    sa_parameters = {
+        "exp_name": "Sa",
+        "data_path": "../datasets/sklearn/sa.csv",
+        "prediction_column": "label",
+        "df_sampling_ratios": [.2, .4, .6, .8, 1],
+        "forest_nb_trees": [3, 5, 7, 9, 13, 17, 21, 25, 35, 55, 95, 150, 250],
+        "forest_subsampling_sizes": [128, 256, 512, 1024, 2048, 4096, 8192, 16384],
+        "tree_height_limit": [4, 8, 16, 32, 64, 128],
+        "pathlength_height_limit": [4, 8, 16, 32, 64, 128],
+        "desired_tpr": .9,
+        "auc_roc_plot": True,
+        "anomaly_histogram_plot": True,
+        "pair_plot": False
+    }
+
+    gen1_parameters = {
+        "exp_name": "Gen1",
+        "data_path": "../datasets/sklearn/gen1.csv",
+        "prediction_column": "label",
+        "df_sampling_ratios": [.2, .4, .6, .8, 1],
+        "forest_nb_trees": [3, 5, 7, 9, 13, 17, 21, 25, 35, 55, 95, 150, 250],
+        "forest_subsampling_sizes": [128, 256, 512, 1024, 2048, 4096, 8192, 16384],
+        "tree_height_limit": [4, 8, 16, 32, 64, 128],
+        "pathlength_height_limit": [4, 8, 16, 32, 64, 128],
+        "desired_tpr": .9,
+        "auc_roc_plot": True,
+        "anomaly_histogram_plot": True,
+        "pair_plot": False
+    }
+
+    gen2_parameters = {
+        "exp_name": "Gen2",
+        "data_path": "../datasets/sklearn/gen2.csv",
+        "prediction_column": "label",
+        "df_sampling_ratios": [.2, .4, .6, .8, 1],
+        "forest_nb_trees": [3, 5, 7, 9, 13, 17, 21, 25, 35, 55, 95, 150, 250],
+        "forest_subsampling_sizes": [128, 256, 512, 1024, 2048, 4096, 8192, 16384],
+        "tree_height_limit": [4, 8, 16, 32, 64, 128],
+        "pathlength_height_limit": [4, 8, 16, 32, 64, 128],
+        "desired_tpr": .9,
+        "auc_roc_plot": True,
+        "anomaly_histogram_plot": True,
+        "pair_plot": False
+    }
+
+    gen3_parameters = {
+        "exp_name": "Gen3",
+        "data_path": "../datasets/sklearn/gen3.csv",
+        "prediction_column": "label",
+        "df_sampling_ratios": [.2, .4, .6, .8, 1],
+        "forest_nb_trees": [3, 5, 7, 9, 13, 17, 21, 25, 35, 55, 95, 150, 250],
+        "forest_subsampling_sizes": [128, 256, 512, 1024, 2048, 4096, 8192, 16384],
+        "tree_height_limit": [4, 8, 16, 32, 64, 128],
+        "pathlength_height_limit": [4, 8, 16, 32, 64, 128],
+        "desired_tpr": .9,
+        "auc_roc_plot": True,
+        "anomaly_histogram_plot": True,
+        "pair_plot": False
+    }
+
+    #run_experiment(cancer_parameters)
     #run_iforest_experiment(cancer_parameters)
 
     # parameters = {
@@ -106,9 +211,25 @@ def main():
     #scatter_exemple()
 
     print("-------------------------------------------------------------------")
-    ocsvm_experiment(http_parameters["data_path"], http_parameters["prediction_column"], df_sampling_ratio=.1)
-    sklearn_iforest(http_parameters["data_path"], http_parameters["prediction_column"])
-    lof_experiment(http_parameters["data_path"], http_parameters["prediction_column"])
+
+    #ocsvm_experiment(http_parameters["exp_name""], http_parameters["data_path"], http_parameters["prediction_column"], df_sampling_ratio=1)
+    #ocsvm_experiment(cancer_parameters["exp_name"], cancer_parameters["data_path"], cancer_parameters["prediction_column"])
+    #ocsvm_experiment(credit_card_parameters["exp_name"], credit_card_parameters["data_path"], credit_card_parameters["prediction_column"])
+    #ocsvm_experiment(iris_parameters["exp_name"], iris_parameters["data_path"], iris_parameters["prediction_column"])
+    #ocsvm_experiment(wines_parameters["exp_name"], wines_parameters["data_path"], wines_parameters["prediction_column"])
+    #ocsvm_experiment(smtp_parameters["exp_name"], smtp_parameters["data_path"], smtp_parameters["prediction_column"])
+    ocsvm_experiment(sa_parameters["exp_name"], sa_parameters["data_path"], sa_parameters["prediction_column"])
+
+    #ocsvm_experiment(gen1_parameters["exp_name"], gen1_parameters["data_path"], gen1_parameters["prediction_column"])
+
+    # erreur
+    #ocsvm_experiment(gen2_parameters["exp_name"], gen2_parameters["data_path"], gen2_parameters["prediction_column"])
+    #ocsvm_experiment(gen3_parameters["exp_name"], gen3_parameters["data_path"], gen3_parameters["prediction_column"])
+
+
+
+    #sklearn_iforest(http_parameters["data_path"], http_parameters["prediction_column"])
+    #lof_experiment(http_parameters["data_path"], http_parameters["prediction_column"])
 
 
 def scatter_exemple():
@@ -131,9 +252,9 @@ def scatter_exemple():
     plt.show()
 
 
-def sklearn_iforest(file_path: str, pred_column: str, nb_tree: int = 20, subsampling_size: int = 256, df_sampling_ratio: float = None, df_features_ratio: float = None):
+def sklearn_iforest(exp_name: str, file_path: str, pred_column: str, nb_tree: int = 20, subsampling_size: int = 256, df_sampling_ratio: float = None, df_features_ratio: float = None):
 
-    print("Running iForest (sklearn version) experiment")
+    print(f"Running iForest {exp_name} experiment (sklearn version)")
 
     train_X, eval_X, train_y, eval_y = preprocess_data(file_path, pred_column, df_sampling_ratio, df_features_ratio)
 
@@ -168,16 +289,21 @@ def sklearn_iforest(file_path: str, pred_column: str, nb_tree: int = 20, subsamp
     print(f"F1 score: {f1_score}")
 
     exp_parameters = {
+        "experiment_name": exp_name,
         "prediction feature": pred_column,
-        "pre-processing sampling size": df_sampling_ratio,
-        "pre-processing feature size": df_features_ratio,
+        "pre_processing_sampling_ratio": df_sampling_ratio,
+        "pre_processing_feature_ratio": df_features_ratio,
+        "training_size": train_X.shape[0],
+        "evaluation_size": eval_X.shape[0]
     }
 
     exp_results = {
         "evaluation dataset size": eval_y.shape[0],
         "AUC": auc,
-        "F1 score": f1_score,
-        "total time": total_time,
+        "F1_score": f1_score,
+        "training_time": training_time,
+        "evaluation_time": evaluation_time,
+        "total_time": total_time,
     }
 
     iforest_infos = {
@@ -201,26 +327,32 @@ def lof_experiment(file_path: str, pred_column: str, df_sampling_ratio: float = 
 
     print("Running LOF experiment")
 
-    train_X, eval_X, train_y, eval_y = preprocess_data(file_path, pred_column, df_sampling_ratio, df_features_ratio)
+    #train_X, eval_X, train_y, eval_y = preprocess_data(file_path, pred_column, df_sampling_ratio, df_features_ratio)
+    df = pd.read_csv(file_path, sep=r'\s*,\s*', header=0, encoding='ascii', engine='python')
+    X, y = df.drop(pred_column, axis=1), df[pred_column]
 
     start_time = time.time()
+    print("create LOF model")
     #clf = LocalOutlierFactor(n_neighbors=n_neighbors, novelty=True, contamination=0.1)
-    clf = LocalOutlierFactor()
+    #clf = LocalOutlierFactor(n_neighbors=10, novelty=False)
 
-    #training
-    pred = clf.fit_predict(train_X)
+    clf = LocalOutlierFactor(n_neighbors=20, contamination=0.1)
+    y_pred = clf.fit_predict(X)
+    #n_errors = (y_pred != ground_truth).sum()
+    X_scores = clf.negative_outlier_factor_
+
     end_time = time.time()
 
     #evaluation
     #X_scores = clf.negative_outlier_factor_
 
-    pred[pred == 1] = 0
-    pred[pred == -1] = 1
+    y_pred[y_pred == 1] = 0
+    y_pred[y_pred == -1] = 1
 
     total_time = end_time - start_time
 
-    auc = metrics.roc_auc_score(train_y, pred)
-    f1_score = metrics.f1_score(train_y, pred)
+    auc = metrics.roc_auc_score(y, y_pred)
+    f1_score = metrics.f1_score(y, y_pred)
 
     print("LOF results")
     print(f"Total time: {total_time}")
@@ -228,24 +360,24 @@ def lof_experiment(file_path: str, pred_column: str, df_sampling_ratio: float = 
     print(f"F1 score: {f1_score}")
 
     exp_parameters = {
-        "prediction feature": pred_column,
-        "pre-processing sampling size": df_sampling_ratio,
-        "pre-processing feature size": df_features_ratio,
+        "prediction_feature": pred_column,
+        "pre_processing_sampling_size": df_sampling_ratio,
+        "pre_processing_feature_size": df_features_ratio,
     }
 
     exp_results = {
-        "evaluation dataset size": eval_y.shape[0],
+        "dataset size": df.shape[0],
         "AUC": auc,
-        "F1 score": f1_score,
-        "total time": total_time,
+        "F1_score": f1_score,
+        "total_time": total_time,
     }
 
     lof_infos = {
-        "model name": "LOF",
+        "model_name": "LOF",
         "n_neighbors": clf.n_neighbors,
         "contamination": clf.contamination,
         "algorithm": clf.algorithm,
-        "leaf size": clf.leaf_size,
+        "leaf_size": clf.leaf_size,
         "metric": clf.metric,
         "metric_params": clf.metric_params,
         "p": clf.p,
@@ -258,9 +390,9 @@ def lof_experiment(file_path: str, pred_column: str, df_sampling_ratio: float = 
     return exp_results
 
 
-def ocsvm_experiment(file_path: str, pred_column: str, df_sampling_ratio: float = None, df_features_ratio: float = None):
+def ocsvm_experiment(exp_name: str, file_path: str, pred_column: str, df_sampling_ratio: float = 1, df_features_ratio: float = 1, display_boundary: bool = False):
 
-    print("Running One-class SVM experiment")
+    print(f"Running One-class SVM {exp_name} experiment")
 
     train_X, eval_X, train_y, eval_y = preprocess_data(file_path, pred_column, df_sampling_ratio, df_features_ratio)
 
@@ -268,14 +400,37 @@ def ocsvm_experiment(file_path: str, pred_column: str, df_sampling_ratio: float 
     clf = OneClassSVM()
 
     # training
+    print("OCSVM training")
     clf.fit(train_X)
     end_train_time = time.time()
 
     # evaluation
+    print("OCSVM evaluation")
     start_eval_time = time.time()
     scores = clf.decision_function(eval_X)
+    print("predict")
     pred_y = clf.predict(eval_X)
     end_eval_time = time.time()
+    print("end predict")
+
+    if display_boundary:
+        print("display boundary")
+        xx, yy = np.meshgrid(np.linspace(eval_X[:, 0].min(), eval_X[:, 0].max(), 500),
+                             np.linspace(eval_X[:, 1].min(), eval_X[:, 1].max(), 500))
+        print("end mesh")
+        Z = clf.decision_function(np.c_[xx.ravel(), yy.ravel()])
+        print("decision func")
+        Z = Z.reshape(xx.shape)
+        print("reshape")
+
+        print("plt")
+        plt.contour(xx, yy, Z, levels=[0], linewidths=2, colors='black')
+        plt.scatter(eval_X[:, 0], eval_X[:, 1], color='red')
+        plt.xlim(eval_X[:, 0].min(), eval_X[:, 0].max())
+        plt.ylim(eval_X[:, 1].min(), eval_X[:, 1].max())
+        plt.title("Frontière de décision de l'OCSVM")
+        plt.show()
+
 
     print(scores)
     print(pred_y)
@@ -293,21 +448,26 @@ def ocsvm_experiment(file_path: str, pred_column: str, df_sampling_ratio: float 
     print("One-class SVM results")
     print(f"Training time: {training_time} sec")
     print(f"Evaluation time: {evaluation_time} sec")
-    print(f"Total time: {total_time}")
+    print(f"Total time: {total_time} sec")
     print(f"AUC: {auc}")
     print(f"F1 score: {f1_score}")
 
     exp_parameters = {
-        "prediction feature": pred_column,
-        "pre-processing sampling size": df_sampling_ratio,
-        "pre-processing feature size": df_features_ratio,
+        "experiment_name": exp_name,
+        "prediction_feature": pred_column,
+        "pre_processing_sampling_ratio": df_sampling_ratio,
+        "pre_processing_feature_ratio": df_features_ratio,
+        "training_size": train_X.shape[0],
+        "evaluation_size": eval_X.shape[0]
     }
 
     exp_results = {
-        "evaluation dataset size": eval_y.shape[0],
+        "evaluation_dataset_size": eval_y.shape[0],
         "AUC": auc,
-        "F1 score": f1_score,
-        "total time": total_time,
+        "F1_score": f1_score,
+        "training_time": training_time,
+        "evaluation_time": evaluation_time,
+        "total_time": total_time,
     }
 
     iforest_infos = {
@@ -352,7 +512,7 @@ def run_iforest_experiment(parameters: dict):
                                             **{param_name: value})
                 auc_results.append(exp_results["AUC"])
                 time_results.append(exp_results["total time"])
-            fig = __auc_time_plot(auc_results, time_results, param_name, parameters[param_key])
+            fig = auc_time_plot(auc_results, time_results, param_name, parameters[param_key])
             fig_exp_name = parameters["exp_name"]
             __save_exp_figure(fig, EXPERIMENT_FILEPATH, f"{fig_exp_name}_auc-time_{param_name}")
 
@@ -369,7 +529,7 @@ def run_experiment_old(parameters: dict):
             auc_results.append(results["AUC"])
             time_results.append(results["total time"])
 
-        __auc_time_plot(auc_results, time_results, parameters["df_sampling_ratios"])
+        auc_time_plot(auc_results, time_results, parameters["df_sampling_ratios"])
 
     if "df_feature_ratios" in parameters:
         auc_results = []
@@ -383,7 +543,7 @@ def run_experiment_old(parameters: dict):
             auc_results.append(results["AUC"])
             time_results.append(results["total time"])
 
-        __auc_time_plot(auc_results, time_results, parameters["df_feature_ratios"])
+        auc_time_plot(auc_results, time_results, parameters["df_feature_ratios"])
 
     if "forest_nb_trees" in parameters:
         auc_results = []
@@ -397,7 +557,7 @@ def run_experiment_old(parameters: dict):
             auc_results.append(results["AUC"])
             time_results.append(results["total time"])
 
-        __auc_time_plot(auc_results, time_results, parameters["forest_nb_trees"])
+        auc_time_plot(auc_results, time_results, parameters["forest_nb_trees"])
 
     if "forest_subsampling_sizes" in parameters:
         auc_results = []
@@ -411,7 +571,7 @@ def run_experiment_old(parameters: dict):
             auc_results.append(results["AUC"])
             time_results.append(results["total time"])
 
-        __auc_time_plot(auc_results, time_results, parameters["forest_subsampling_sizes"])
+        auc_time_plot(auc_results, time_results, parameters["forest_subsampling_sizes"])
 
     if "pathlength_height_limit" in parameters:
         auc_results = []
@@ -425,7 +585,7 @@ def run_experiment_old(parameters: dict):
             auc_results.append(results["AUC"])
             time_results.append(results["total time"])
 
-        __auc_time_plot(auc_results, time_results, parameters["pathlength_height_limit"])
+        auc_time_plot(auc_results, time_results, parameters["pathlength_height_limit"])
 
 
 def iforest_experiment(exp_name: str, file_path: str, pred_column: str, nb_tree: int = 20, subsampling_size: int = 256,
@@ -443,6 +603,8 @@ def iforest_experiment(exp_name: str, file_path: str, pred_column: str, nb_tree:
 
     train_X, eval_X, train_y, eval_y = preprocess_data(file_path, pred_column, df_sampling_ratio, df_features_ratio)
 
+    #check if evaluationset contains 2 classes to perform evaluations metrics
+
     print("===- Begin training phase -===")
     iforest = IsolationForest(train_X, nb_tree, subsampling_size)
     iforest.fit()
@@ -451,7 +613,7 @@ def iforest_experiment(exp_name: str, file_path: str, pred_column: str, nb_tree:
     print()
 
     print("===- Begin evaluation phase -===")
-    scores = iforest.score(eval_X, pathlength_height_limit)
+    scores = iforest.predict(eval_X, pathlength_height_limit)
     print(f"Score compute in: {iforest.evaluation_time} seconds")
     print("===- End evaluation phase -===")
     print()
@@ -476,14 +638,14 @@ def iforest_experiment(exp_name: str, file_path: str, pred_column: str, nb_tree:
     auc_roc_fig, anomalies_hist_fig, pairplot_fig = None, None, None
     if auc_roc:
         print("Performing AUC/ROC figure")
-        auc_roc_fig = __auc_roc_plot(auc, eval_y, exp_name, fpr, prediction_y, tpr)
+        auc_roc_fig = auc_roc_plot(auc, eval_y, exp_name, fpr, prediction_y, tpr)
     if anomaly_histogram:
         print("Performing Anomaly histogram")
-        anomalies_hist_fig = __anomalies_histogram_plot(scores, eval_y, threshold)
+        anomalies_hist_fig = anomalies_histogram_plot(scores, eval_y, threshold)
     if pairplot:
         if eval_X.shape[1] <=5:
             print("Performing Scatter matrix plot (pairplot)")
-            pairplot_fig = __anomaly_pairplot(eval_X)
+            pairplot_fig = anomaly_pairplot(eval_X)
         else:
             print("unable to perform scatter matrix because of the high number of features")
 
@@ -521,7 +683,7 @@ def iforest_experiment(exp_name: str, file_path: str, pred_column: str, nb_tree:
     return exp_results
 
 
-def __anomalies_histogram_plot(scores, y, anomaly_threshold):
+def anomalies_histogram_plot(scores, y, anomaly_threshold):
     normal = scores[y == 0]
     anomalies = scores[y == 1]
 
@@ -551,7 +713,7 @@ def __anomalies_histogram_plot(scores, y, anomaly_threshold):
     return fig
 
 
-def __auc_roc_plot(auc, eval_y, exp_name, fpr, prediction_y, tpr):
+def auc_roc_plot(auc, eval_y, exp_name, fpr, prediction_y, tpr):
 
     # display confusion matrix and ROC curve
     confusion_matrix = metrics.confusion_matrix(eval_y, prediction_y)
@@ -560,6 +722,7 @@ def __auc_roc_plot(auc, eval_y, exp_name, fpr, prediction_y, tpr):
     fig.suptitle(f"{exp_name} results")
     cm_display.plot(ax=ax1, cmap='Blues_r')
     ax2.plot(fpr, tpr, label=f"auc={auc}")
+    ax2.plot([0, 1], [0, 1], linestyle='--', color='gray', label='Equality Line')
     ax2.set_xlabel("Falses Positives Rate (FPR)")
     ax2.set_ylabel("True Positives Rate (TPR)")
     ax2.legend(loc=4)
@@ -569,7 +732,7 @@ def __auc_roc_plot(auc, eval_y, exp_name, fpr, prediction_y, tpr):
     return figure
 
 
-def __anomaly_pairplot(proc_df: DataFrame):
+def anomaly_pairplot(proc_df: DataFrame):
     normal_points = proc_df[proc_df["Anomaly prediction"] == 0]
     anomaly_points = proc_df[proc_df["Anomaly prediction"] == 1]
 
@@ -581,7 +744,7 @@ def __anomaly_pairplot(proc_df: DataFrame):
     return figure
 
 
-def __auc_time_plot(auc_results, time_results, param_name, param_array):
+def auc_time_plot(auc_results, time_results, param_name, param_array):
 
     fig, ax1 = plt.subplots()
     ax2 = ax1.twinx()
@@ -646,8 +809,16 @@ def preprocess_data(file_path: str, prediction_column: str, sample_row_ratio=Non
                 return
 
         X, y = proc_df.drop(prediction_column, axis=1), proc_df[prediction_column]
+
         # split input data
-        train_X, eval_X, train_y, eval_y = train_test_split(X, y, random_state=1)
+        #train_X, eval_X, train_y, eval_y = train_test_split(X, y, random_state=1)
+
+        # Using StratifiedShuffleSplit to ensure both classes are present in train and eval sets
+        sss = StratifiedShuffleSplit(n_splits=1, test_size=0.2, random_state=42)
+        for train_index, test_index in sss.split(X, y):
+            train_X, eval_X = X.iloc[train_index], X.iloc[test_index]
+            train_y, eval_y = y.iloc[train_index], y.iloc[test_index]
+
         return train_X, eval_X, train_y, eval_y
 
     else:

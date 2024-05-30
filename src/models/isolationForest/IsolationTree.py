@@ -33,9 +33,9 @@ class IsolationTree(object):
             self.ileaf_cnt += 1
             return IsolationLeaf(input_values.shape[0])
 
-        # get feature to split
+        # get random feature
         selected_feature = random.randint(0, input_values.shape[1]-1)
-        #get random value to use as a split point
+        #get random value into the selected feature to use as a split point
         split_value = np.random.uniform(min(input_values[:, selected_feature]), max(input_values[:, selected_feature]))
 
         # create inode with current value and its corresponding observation id

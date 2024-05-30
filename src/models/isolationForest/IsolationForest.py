@@ -112,15 +112,15 @@ class IsolationForest(object):
 
         for i in range(0, self.tree_nb):
             # subsample the whole dataset
-            sub_index = np.random.choice(input_values.shape[0], self.subsampling_size, replace=False)
-            sub_values = input_values[sub_index]
+            sub_index = np.random.choice(input_values.shape[0], self.subsampling_size, replace=True)
+            sub_samples = input_values[sub_index]
 
             # create a new tree and add it to the forest
-            tree = IsolationTree(sub_values, self.height_limit)
+            tree = IsolationTree(sub_samples, self.height_limit)
             self.tree_list.append(tree)
             self.total_nodes_nb += tree.inode_cnt + tree.ileaf_cnt
 
-    def score(self, dataset: DataFrame, height_limit: int = 0):
+    def predict(self, dataset: DataFrame, height_limit: int = 0):
         """
             Score the dataset for anomalies using the isolation forest.
 
