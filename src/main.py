@@ -226,7 +226,7 @@ def main():
 
     #problème surement au niveau du split qui ne peut se faire qu'avec minimum 2 anomalies
     #iforest_experiment(gen2_parameters["exp_name"], gen2_parameters["data_path"], gen2_parameters["prediction_column"], nb_tree=100)
-    # iforest_experiment(gen1_parameters["exp_name"], gen1_parameters["data_path"], gen1_parameters["prediction_column"], nb_tree=100)
+    # iforest_experiment(gen1_parameters["exp_name], gen1_parameters["data_path"], gen1_parameters["prediction_column"], nb_tree=100)
     # iforest_experiment(sa_parameters["exp_name"], sa_parameters["data_path"], sa_parameters["prediction_column"], nb_tree=100)
     # iforest_experiment(http_parameters["exp_name"], http_parameters["data_path"], http_parameters["prediction_column"], nb_tree=100)
     # iforest_experiment(credit_card_parameters["exp_name"], credit_card_parameters["data_path"], credit_card_parameters["prediction_column"], nb_tree=100)
