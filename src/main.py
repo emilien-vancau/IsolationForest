@@ -26,11 +26,11 @@ def main():
         "exp_name": "Http",
         "data_path": "../datasets/sklearn/http.csv",
         "prediction_column": "attack",
-        "df_sampling_ratios": [.2, .4, .6, .8, 1],
-        "forest_nb_trees": [3, 5, 7, 9, 13, 17, 21, 25, 35, 55, 95, 150, 250],
-        "forest_subsampling_sizes": [128, 256, 512, 1024, 2048, 4096, 8192, 16384],
-        "tree_height_limit": [4, 8, 16, 32, 64, 128],
-        "pathlength_height_limit": [4, 8, 16, 32, 64, 128],
+        "df_sampling_ratios": [.1, .2, .3, .4, .5, .6, .7, .8, .9, 1],
+        "forest_nb_trees": [3, 5, 7, 9, 13, 17, 21, 25, 35, 55, 95, 150, 250, 350],
+        "forest_subsampling_sizes": [2, 4, 8, 16, 32, 64, 128, 256, 512, 1024, 2048, 4096, 8192, 16384],
+        "tree_height_limit": [2, 4, 8, 16, 32, 64, 128, 256],
+        "pathlength_height_limit": [2, 4, 8, 16, 32, 64, 128, 256],
         "desired_tpr": .9,
         "auc_roc_plot": True,
         "anomaly_histogram_plot": True,
@@ -41,22 +41,24 @@ def main():
         "exp_name": "Cancer",
         "data_path": "../datasets/sklearn/cancer.csv",
         "prediction_column": "diagnosis",
-        #"df_sampling_ratios": [.2, .4, .6, .8, 1],
-        "forest_nb_trees": [3, 5, 7, 9, 13, 17, 21, 25, 35, 55, 95, 150, 250],
-        #"forest_subsampling_sizes": [128, 256, 512, 1024, 2048, 4096, 8192, 16384],
-        #"tree_height_limit": [4, 8, 16, 32, 64, 128],
-        #"pathlength_height_limit": [4, 8, 16, 32, 64, 128],
+        "df_sampling_ratios": [.1, .2, .3, .4, .5, .6, .7, .8, .9, 1],
+        "df_features_ratios": [.1, .2, .3, .4, .5, .6, .7, .8, .9, 1],
+        "forest_nb_trees": [3, 5, 7, 9, 13, 17, 21, 25, 35, 55, 95, 150, 250, 350],
+        "forest_subsampling_sizes": [2, 4, 8, 16, 32, 64, 128, 256, 512, 1024, 2048, 4096, 8192, 16384],
+        "tree_height_limit": [2, 4, 8, 16, 32, 64, 128, 256],
+        "pathlength_height_limit": [2, 4, 8, 16, 32, 64, 128, 256],
         "desired_tpr": .9,
         "auc_roc_plot": True,
         "anomaly_histogram_plot": True,
-        "pair_plot": True
+        "pair_plot": False
     }
 
     credit_card_parameters = {
         "exp_name": "cred_card_fraud",
         "data_path": "../datasets/kaggle/credit_card_fraud/creditcard.csv",
         "prediction_column": "Class",
-        "df_sampling_ratios": [.2, .4, .6, .8, 1],
+        "df_sampling_ratios": [.1, .2, .3, .4, .5, .6, .7, .8, .9, 1],
+        "df_features_ratios": [.1, .2, .3, .4, .5, .6, .7, .8, .9, 1],
         "forest_nb_trees": [3, 5, 7, 9, 13, 17, 21, 25, 35, 55, 95, 150, 250],
         "forest_subsampling_sizes": [128, 256, 512, 1024, 2048, 4096, 8192, 16384],
         "tree_height_limit": [4, 8, 16, 32, 64, 128],
@@ -71,11 +73,11 @@ def main():
         "exp_name": "Iris",
         "data_path": "../datasets/sklearn/iris.csv",
         "prediction_column": "class",
-        "df_sampling_ratios": [.2, .4, .6, .8, 1],
-        "forest_nb_trees": [3, 5, 7, 9, 13, 17, 21, 25, 35, 55, 95, 150, 250],
-        "forest_subsampling_sizes": [128, 256, 512, 1024, 2048, 4096, 8192, 16384],
-        "tree_height_limit": [4, 8, 16, 32, 64, 128],
-        "pathlength_height_limit": [4, 8, 16, 32, 64, 128],
+        "df_sampling_ratios": [.1, .2, .3, .4, .5, .6, .7, .8, .9, 1],
+        "forest_nb_trees": [3, 5, 7, 9, 13, 17, 21, 25, 35, 55, 95, 150, 250, 350],
+        "forest_subsampling_sizes": [2, 4, 8, 16, 32, 64, 128, 256, 512, 1024, 2048, 4096, 8192, 16384],
+        "tree_height_limit": [2, 4, 8, 16, 32, 64, 128, 256],
+        "pathlength_height_limit": [2, 4, 8, 16, 32, 64, 128, 256],
         "desired_tpr": .9,
         "auc_roc_plot": True,
         "anomaly_histogram_plot": True,
@@ -86,11 +88,12 @@ def main():
         "exp_name": "Wines",
         "data_path": "../datasets/sklearn/wines.csv",
         "prediction_column": "class",
-        "df_sampling_ratios": [.2, .4, .6, .8, 1],
-        "forest_nb_trees": [3, 5, 7, 9, 13, 17, 21, 25, 35, 55, 95, 150, 250],
-        "forest_subsampling_sizes": [128, 256, 512, 1024, 2048, 4096, 8192, 16384],
-        "tree_height_limit": [4, 8, 16, 32, 64, 128],
-        "pathlength_height_limit": [4, 8, 16, 32, 64, 128],
+        "df_sampling_ratios": [.1, .2, .3, .4, .5, .6, .7, .8, .9, 1],
+        "df_features_ratios": [.1, .2, .3, .4, .5, .6, .7, .8, .9, 1],
+        "forest_nb_trees": [3, 5, 7, 9, 13, 17, 21, 25, 35, 55, 95, 150, 250, 350],
+        "forest_subsampling_sizes": [2, 4, 8, 16, 32, 64, 128, 256, 512, 1024, 2048, 4096, 8192, 16384],
+        "tree_height_limit": [2, 4, 8, 16, 32, 64, 128, 256],
+        "pathlength_height_limit": [2, 4, 8, 16, 32, 64, 128, 256],
         "desired_tpr": .9,
         "auc_roc_plot": True,
         "anomaly_histogram_plot": True,
@@ -101,11 +104,10 @@ def main():
         "exp_name": "Smtp",
         "data_path": "../datasets/sklearn/smtp.csv",
         "prediction_column": "label",
-        "df_sampling_ratios": [.2, .4, .6, .8, 1],
-        "forest_nb_trees": [3, 5, 7, 9, 13, 17, 21, 25, 35, 55, 95, 150, 250],
-        "forest_subsampling_sizes": [128, 256, 512, 1024, 2048, 4096, 8192, 16384],
-        "tree_height_limit": [4, 8, 16, 32, 64, 128],
-        "pathlength_height_limit": [4, 8, 16, 32, 64, 128],
+        "forest_nb_trees": [3, 5, 7, 9, 13, 17, 21, 25, 35, 55, 95, 150, 250, 350],
+        "forest_subsampling_sizes": [2, 4, 8, 16, 32, 64, 128, 256, 512, 1024, 2048, 4096, 8192, 16384],
+        "tree_height_limit": [2, 4, 8, 16, 32, 64, 128, 256],
+        "pathlength_height_limit": [2, 4, 8, 16, 32, 64, 128, 256],
         "desired_tpr": .9,
         "auc_roc_plot": True,
         "anomaly_histogram_plot": True,
@@ -116,11 +118,12 @@ def main():
         "exp_name": "Sa",
         "data_path": "../datasets/sklearn/sa.csv",
         "prediction_column": "label",
-        "df_sampling_ratios": [.2, .4, .6, .8, 1],
-        "forest_nb_trees": [3, 5, 7, 9, 13, 17, 21, 25, 35, 55, 95, 150, 250],
-        "forest_subsampling_sizes": [128, 256, 512, 1024, 2048, 4096, 8192, 16384],
-        "tree_height_limit": [4, 8, 16, 32, 64, 128],
-        "pathlength_height_limit": [4, 8, 16, 32, 64, 128],
+        "df_sampling_ratios": [.1, .2, .3, .4, .5, .6, .7, .8, .9, 1],
+        "df_features_ratios": [.1, .2, .3, .4, .5, .6, .7, .8, .9, 1],
+        "forest_nb_trees": [3, 5, 7, 9, 13, 17, 21, 25, 35, 55, 95, 150, 250, 350],
+        "forest_subsampling_sizes": [2, 4, 8, 16, 32, 64, 128, 256, 512, 1024, 2048, 4096, 8192, 16384],
+        "tree_height_limit": [2, 4, 8, 16, 32, 64, 128, 256],
+        "pathlength_height_limit": [2, 4, 8, 16, 32, 64, 128, 256],
         "desired_tpr": .9,
         "auc_roc_plot": True,
         "anomaly_histogram_plot": True,
@@ -132,10 +135,11 @@ def main():
         "data_path": "../datasets/sklearn/gen1.csv",
         "prediction_column": "label",
         "df_sampling_ratios": [.2, .4, .6, .8, 1],
-        "forest_nb_trees": [3, 5, 7, 9, 13, 17, 21, 25, 35, 55, 95, 150, 250],
-        "forest_subsampling_sizes": [128, 256, 512, 1024, 2048, 4096, 8192, 16384],
-        "tree_height_limit": [4, 8, 16, 32, 64, 128],
-        "pathlength_height_limit": [4, 8, 16, 32, 64, 128],
+        "df_features_ratios": [.2, .4, .6, .8, 1],
+        "forest_nb_trees": [3, 5, 7, 9, 13, 17, 21, 25, 35, 55, 95, 150, 250, 350],
+        "forest_subsampling_sizes": [2, 4, 8, 16, 32, 64, 128, 256, 512, 1024, 2048, 4096, 8192, 16384],
+        "tree_height_limit": [2, 4, 8, 16, 32, 64, 128, 256],
+        "pathlength_height_limit": [2, 4, 8, 16, 32, 64, 128, 256],
         "desired_tpr": .9,
         "auc_roc_plot": True,
         "anomaly_histogram_plot": True,
@@ -146,11 +150,10 @@ def main():
         "exp_name": "Gen2",
         "data_path": "../datasets/sklearn/gen2.csv",
         "prediction_column": "label",
-        "df_sampling_ratios": [.2, .4, .6, .8, 1],
-        "forest_nb_trees": [3, 5, 7, 9, 13, 17, 21, 25, 35, 55, 95, 150, 250],
-        "forest_subsampling_sizes": [128, 256, 512, 1024, 2048, 4096, 8192, 16384],
-        "tree_height_limit": [4, 8, 16, 32, 64, 128],
-        "pathlength_height_limit": [4, 8, 16, 32, 64, 128],
+        "forest_nb_trees": [3, 5, 7, 9, 13, 17, 21, 25, 35, 55, 95, 150, 250, 350],
+        "forest_subsampling_sizes": [2, 4, 8, 16, 32, 64, 128, 256, 512, 1024, 2048, 4096, 8192, 16384],
+        "tree_height_limit": [2, 4, 8, 16, 32, 64, 128, 256],
+        "pathlength_height_limit": [2, 4, 8, 16, 32, 64, 128, 256],
         "desired_tpr": .9,
         "auc_roc_plot": True,
         "anomaly_histogram_plot": True,
@@ -161,16 +164,44 @@ def main():
         "exp_name": "Gen3",
         "data_path": "../datasets/sklearn/gen3.csv",
         "prediction_column": "label",
-        "df_sampling_ratios": [.2, .4, .6, .8, 1],
-        "forest_nb_trees": [3, 5, 7, 9, 13, 17, 21, 25, 35, 55, 95, 150, 250],
-        "forest_subsampling_sizes": [128, 256, 512, 1024, 2048, 4096, 8192, 16384],
-        "tree_height_limit": [4, 8, 16, 32, 64, 128],
-        "pathlength_height_limit": [4, 8, 16, 32, 64, 128],
+        "df_features_ratios": [.2, .4, .6, .8, 1],
+        "forest_nb_trees": [3, 5, 7, 9, 13, 17, 21, 25, 35, 55, 95, 150, 250, 350],
+        "forest_subsampling_sizes": [2, 4, 8, 16, 32, 64, 128, 256, 512, 1024, 2048, 4096, 8192, 16384],
+        "tree_height_limit": [2, 4, 8, 16, 32, 64, 128, 256],
+        "pathlength_height_limit": [2, 4, 8, 16, 32, 64, 128, 256],
         "desired_tpr": .9,
         "auc_roc_plot": True,
         "anomaly_histogram_plot": True,
         "pair_plot": False
     }
+
+    landsat_parameters = {
+        "exp_name": "Landsat",
+        "data_path": "../datasets/uci/landsat.csv",
+        "prediction_column": "label",
+        "df_sampling_ratios": [.1, .2, .3, .4, .5, .6, .7, .8, .9, 1],
+        "df_features_ratios": [.1, .2, .3, .4, .5, .6, .7, .8, .9, 1],
+        "forest_nb_trees": [3, 5, 7, 9, 13, 17, 21, 25, 35, 55, 95, 150, 250, 350],
+        "forest_subsampling_sizes": [2, 4, 8, 16, 32, 64, 128, 256, 512, 1024, 2048, 4096, 8192, 16384],
+        "tree_height_limit": [2, 4, 8, 16, 32, 64, 128, 256],
+        "pathlength_height_limit": [2, 4, 8, 16, 32, 64, 128, 256],
+        "desired_tpr": .9,
+        "auc_roc_plot": True,
+        "anomaly_histogram_plot": True,
+        "pair_plot": False
+    }
+
+    #run_iforest_param_experiments(http_parameters)
+    #run_iforest_param_experiments(cancer_parameters)
+    #run_iforest_param_experiments(iris_parameters)
+    #run_iforest_param_experiments(wines_parameters)
+    #run_iforest_param_experiments(smtp_parameters) #too few anomalies with 0.1 row sampling
+    #run_iforest_param_experiments(credit_card_parameters)
+    #run_iforest_param_experiments(sa_parameters)
+    #run_iforest_param_experiments(gen1_parameters)
+    #run_iforest_param_experiments(gen2_parameters)
+    #run_iforest_param_experiments(gen3_parameters)
+    #run_iforest_param_experiments(landsat_parameters)
 
     #run_experiment(cancer_parameters)
     #run_iforest_experiment(cancer_parameters)
@@ -211,29 +242,43 @@ def main():
 
     print("-------------------------------------------------------------------")
 
-    #run_ocsvm_experiments(cancer_parameters, credit_card_parameters, gen1_parameters, gen3_parameters, http_parameters, iris_parameters, sa_parameters, smtp_parameters, wines_parameters)
-
-    #run_lof_experiments(cancer_parameters, credit_card_parameters, gen1_parameters, gen2_parameters, gen3_parameters, http_parameters, iris_parameters, sa_parameters, smtp_parameters, wines_parameters)
-
-    #run_skl_iforest_experiments(cancer_parameters, credit_card_parameters, gen1_parameters, gen3_parameters, http_parameters, iris_parameters, sa_parameters, smtp_parameters, wines_parameters)
-
-    #erreur
-    # iforest_experiment(cancer_parameters["exp_name"], cancer_parameters["data_path"], cancer_parameters["prediction_column"], nb_tree=100)
-    # iforest_experiment(iris_parameters["exp_name"], iris_parameters["data_path"], iris_parameters["prediction_column"], nb_tree=100)
-    # iforest_experiment(wines_parameters["exp_name"], wines_parameters["data_path"], wines_parameters["prediction_column"], nb_tree=100)
-    # iforest_experiment(smtp_parameters["exp_name"], smtp_parameters["data_path"], smtp_parameters["prediction_column"], nb_tree=100)
-    # iforest_experiment(gen3_parameters["exp_name"], gen3_parameters["data_path"], gen3_parameters["prediction_column"], nb_tree=100)
-
-    #problème surement au niveau du split qui ne peut se faire qu'avec minimum 2 anomalies
-    #iforest_experiment(gen2_parameters["exp_name"], gen2_parameters["data_path"], gen2_parameters["prediction_column"], nb_tree=100)
-    # iforest_experiment(gen1_parameters["exp_name], gen1_parameters["data_path"], gen1_parameters["prediction_column"], nb_tree=100)
-    # iforest_experiment(sa_parameters["exp_name"], sa_parameters["data_path"], sa_parameters["prediction_column"], nb_tree=100)
-    # iforest_experiment(http_parameters["exp_name"], http_parameters["data_path"], http_parameters["prediction_column"], nb_tree=100)
-    # iforest_experiment(credit_card_parameters["exp_name"], credit_card_parameters["data_path"], credit_card_parameters["prediction_column"], nb_tree=100)
+    #run_ocsvm_experiments(cancer_parameters, credit_card_parameters, gen1_parameters, gen2_parameters, gen3_parameters, http_parameters, iris_parameters, sa_parameters, smtp_parameters, wines_parameters, landsat_parameters)
+    #run_lof_experiments(cancer_parameters, credit_card_parameters, gen1_parameters, gen2_parameters, gen3_parameters, http_parameters, iris_parameters, sa_parameters, smtp_parameters, wines_parameters, landsat_parameters)
+    #run_skl_iforest_experiments(cancer_parameters, credit_card_parameters, gen1_parameters, gen2_parameters, gen3_parameters, http_parameters, iris_parameters, sa_parameters, smtp_parameters, wines_parameters, landsat_parameters)
+    #run_iforest_experiments(cancer_parameters, credit_card_parameters, gen1_parameters, gen2_parameters, gen3_parameters, http_parameters, iris_parameters, landsat_parameters, sa_parameters, smtp_parameters, wines_parameters)
 
 
-def run_skl_iforest_experiments(cancer_parameters, credit_card_parameters, gen1_parameters, gen3_parameters,
-                                http_parameters, iris_parameters, sa_parameters, smtp_parameters, wines_parameters):
+def run_iforest_experiments(cancer_parameters, credit_card_parameters, gen1_parameters, gen2_parameters,
+                            gen3_parameters, http_parameters, iris_parameters, landsat_parameters, sa_parameters,
+                            smtp_parameters, wines_parameters):
+
+    iforest_experiment(cancer_parameters["exp_name"], cancer_parameters["data_path"],
+                       cancer_parameters["prediction_column"], nb_tree=100)
+    iforest_experiment(iris_parameters["exp_name"], iris_parameters["data_path"], iris_parameters["prediction_column"],
+                       nb_tree=100)
+    iforest_experiment(wines_parameters["exp_name"], wines_parameters["data_path"],
+                       wines_parameters["prediction_column"], nb_tree=100)
+    iforest_experiment(smtp_parameters["exp_name"], smtp_parameters["data_path"], smtp_parameters["prediction_column"],
+                       nb_tree=100)
+    iforest_experiment(gen3_parameters["exp_name"], gen3_parameters["data_path"], gen3_parameters["prediction_column"],
+                       nb_tree=100)
+    iforest_experiment(gen2_parameters["exp_name"], gen2_parameters["data_path"], gen2_parameters["prediction_column"],
+                       nb_tree=100)
+    iforest_experiment(gen1_parameters["exp_name"], gen1_parameters["data_path"], gen1_parameters["prediction_column"],
+                       nb_tree=100)
+    iforest_experiment(sa_parameters["exp_name"], sa_parameters["data_path"], sa_parameters["prediction_column"],
+                       nb_tree=100)
+    iforest_experiment(http_parameters["exp_name"], http_parameters["data_path"], http_parameters["prediction_column"],
+                       nb_tree=100)
+    iforest_experiment(credit_card_parameters["exp_name"], credit_card_parameters["data_path"],
+                       credit_card_parameters["prediction_column"], nb_tree=100)
+    iforest_experiment(landsat_parameters["exp_name"], landsat_parameters["data_path"],
+                       landsat_parameters["prediction_column"], nb_tree=100)
+
+
+def run_skl_iforest_experiments(cancer_parameters, credit_card_parameters, gen1_parameters, gen2_parameters, gen3_parameters,
+                                http_parameters, iris_parameters, sa_parameters, smtp_parameters, wines_parameters,
+                                landsat_parameters):
 
     print("SKLEARN IFOREST EXPERIMENTS")
     sklearn_iforest(cancer_parameters["exp_name"], cancer_parameters["data_path"], cancer_parameters["prediction_column"])
@@ -241,17 +286,16 @@ def run_skl_iforest_experiments(cancer_parameters, credit_card_parameters, gen1_
     sklearn_iforest(wines_parameters["exp_name"], wines_parameters["data_path"], wines_parameters["prediction_column"])
     sklearn_iforest(smtp_parameters["exp_name"], smtp_parameters["data_path"], smtp_parameters["prediction_column"])
     sklearn_iforest(gen3_parameters["exp_name"], gen3_parameters["data_path"], gen3_parameters["prediction_column"])
+    sklearn_iforest(gen2_parameters["exp_name"], gen2_parameters["data_path"], gen2_parameters["prediction_column"])
     sklearn_iforest(gen1_parameters["exp_name"], gen1_parameters["data_path"], gen1_parameters["prediction_column"])
     sklearn_iforest(sa_parameters["exp_name"], sa_parameters["data_path"], sa_parameters["prediction_column"])
     sklearn_iforest(http_parameters["exp_name"], http_parameters["data_path"], http_parameters["prediction_column"])
     sklearn_iforest(credit_card_parameters["exp_name"], credit_card_parameters["data_path"], credit_card_parameters["prediction_column"])
-
-    # contient seulement une seule anomalie du coup pas capable de faire l'algo ...
-    # sklearn_iforest(gen2_parameters["exp_name"], gen2_parameters["data_path"], gen2_parameters["prediction_column"])
+    sklearn_iforest(landsat_parameters["exp_name"], landsat_parameters["data_path"], landsat_parameters["prediction_column"])
 
 
 def run_lof_experiments(cancer_parameters, credit_card_parameters, gen1_parameters, gen2_parameters, gen3_parameters,
-                        http_parameters, iris_parameters, sa_parameters, smtp_parameters, wines_parameters):
+                        http_parameters, iris_parameters, sa_parameters, smtp_parameters, wines_parameters, landsat_parameters):
 
     print("LOF EXPERIMENTS")
     lof_experiment(cancer_parameters["exp_name"], cancer_parameters["data_path"], cancer_parameters["prediction_column"])
@@ -264,24 +308,22 @@ def run_lof_experiments(cancer_parameters, credit_card_parameters, gen1_paramete
     lof_experiment(sa_parameters["exp_name"], sa_parameters["data_path"], sa_parameters["prediction_column"])
     lof_experiment(http_parameters["exp_name"], http_parameters["data_path"], http_parameters["prediction_column"])
     lof_experiment(credit_card_parameters["exp_name"], credit_card_parameters["data_path"], credit_card_parameters["prediction_column"])
+    lof_experiment(landsat_parameters["exp_name"], landsat_parameters["data_path"], landsat_parameters["prediction_column"])
 
-
-def run_ocsvm_experiments(cancer_parameters, credit_card_parameters, gen1_parameters, gen3_parameters, http_parameters,
-                          iris_parameters, sa_parameters, smtp_parameters, wines_parameters):
+def run_ocsvm_experiments(cancer_parameters, credit_card_parameters, gen1_parameters, gen2_parameters, gen3_parameters, http_parameters,
+                          iris_parameters, sa_parameters, smtp_parameters, wines_parameters, landsat_parameters):
     print("OCSVM EXPERIMENTS")
     ocsvm_experiment(cancer_parameters["exp_name"], cancer_parameters["data_path"], cancer_parameters["prediction_column"])
     ocsvm_experiment(iris_parameters["exp_name"], iris_parameters["data_path"], iris_parameters["prediction_column"])
     ocsvm_experiment(wines_parameters["exp_name"], wines_parameters["data_path"], wines_parameters["prediction_column"])
     ocsvm_experiment(smtp_parameters["exp_name"], smtp_parameters["data_path"], smtp_parameters["prediction_column"])
     ocsvm_experiment(gen3_parameters["exp_name"], gen3_parameters["data_path"], gen3_parameters["prediction_column"])
+    ocsvm_experiment(gen2_parameters["exp_name"], gen2_parameters["data_path"], gen2_parameters["prediction_column"])
     ocsvm_experiment(gen1_parameters["exp_name"], gen1_parameters["data_path"], gen1_parameters["prediction_column"])
     ocsvm_experiment(sa_parameters["exp_name"], sa_parameters["data_path"], sa_parameters["prediction_column"])
     ocsvm_experiment(http_parameters["exp_name"], http_parameters["data_path"], http_parameters["prediction_column"])
     ocsvm_experiment(credit_card_parameters["exp_name"], credit_card_parameters["data_path"], credit_card_parameters["prediction_column"])
-
-    # erreur
-    # contient seulement une seule anomalie du coup pas capable de faire l'algo ...
-    # ocsvm_experiment(gen2_parameters["exp_name"], gen2_parameters["data_path"], gen2_parameters["prediction_column"])
+    ocsvm_experiment(landsat_parameters["exp_name"], landsat_parameters["data_path"], landsat_parameters["prediction_column"])
 
 
 def sklearn_iforest(exp_name: str, file_path: str, pred_column: str, nb_tree: int = 100, subsampling_size: int = 256, df_sampling_ratio: float = 1, df_features_ratio: float = 1):
@@ -527,7 +569,7 @@ def ocsvm_experiment(exp_name: str, file_path: str, pred_column: str, df_samplin
 def run_iforest_param_experiments(parameters: dict):
     param_mappings = {
         "df_sampling_ratios": "df_sampling_ratio",
-        "df_feature_ratios": "df_features_ratio",
+        "df_features_ratios": "df_features_ratio",
         "forest_nb_trees": "nb_tree",
         "forest_subsampling_sizes": "subsampling_size",
         "pathlength_height_limit": "pathlength_height_limit",

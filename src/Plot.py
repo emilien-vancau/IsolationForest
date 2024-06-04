@@ -94,12 +94,14 @@ def auc_time_plot(auc_results, time_results, param_name, param_array):
     ax2 = ax1.twinx()
     fig.suptitle(f"AUC/TIME title")
 
-    ax1.plot(param_array, time_results, color="#69b3a2", label='Temps', marker='o')
+    ax1.plot(param_array, time_results, linestyle='--', color="#69b3a2", label='Temps', marker='o')
     ax2.plot(param_array, auc_results, color="#3399e6", label='AUC', marker='o')
 
     ax1.tick_params(axis="y", labelcolor="#69b3a2")
     ax2.tick_params(axis="y", labelcolor="#3399e6")
 
+    time_upper_limit = max(time_results) * 1.5  # Adding 50% margin
+    ax1.set_ylim(top=time_upper_limit)
     ax2.set_ylim(0, 1)
     ax2.yaxis.set_major_locator(plt.MultipleLocator(0.05))
 
