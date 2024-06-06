@@ -66,6 +66,9 @@ def preprocess_data(file_path: str, prediction_column: str, sample_row_ratio=Non
         return train_X, eval_X, train_y, eval_y
 
 
+def drop_outliers(df: DataFrame, column: str):
+    return df[df[column] != 1]
+
 def display_class_proportions(df: DataFrame, label_column: str):
     df_proportions = df[label_column].value_counts(normalize=True)
     print(f"Classes proportions in {label_column} column")

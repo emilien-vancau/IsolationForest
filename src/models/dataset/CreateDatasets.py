@@ -84,8 +84,8 @@ def make_datasets():
     print(sa_proportions)
 
     # Generate classification datasets
-    df_gen1 = create_anomaly_dataset(n_samples=1000, n_features=25, outiers_percentage=.6,
-                                     n_informative=3, n_redundant=0, class_sep=1, n_clusters_per_class=2)
+    df_gen1 = create_anomaly_dataset(n_samples=1000, n_features=250, outiers_percentage=.07,
+                                     n_informative=2, n_redundant=0, class_sep=1, n_clusters_per_class=2)
     gen1_proportions = df_gen1['label'].value_counts(normalize=True)
     print("Gen1 Proportions")
     print(gen1_proportions)
@@ -97,7 +97,7 @@ def make_datasets():
     print(gen2_proportions)
 
     df_gen3 = create_anomaly_dataset(n_samples=30, n_features=10, outiers_percentage=.15,
-                                     n_informative=3, n_redundant=0, class_sep=1, n_clusters_per_class=2)
+                                     n_informative=2, n_redundant=0, class_sep=1, n_clusters_per_class=2)
     gen3_proportions = df_gen3['label'].value_counts(normalize=True)
     print("Gen3 Proportions")
     print(gen3_proportions)
@@ -113,15 +113,15 @@ def make_datasets():
     print("X Proportions")
     print(landsat_proportions)
 
-    df_cancer.to_csv("cancer.csv", index=False)
-    df_iris.to_csv("iris.csv", index=False)
-    df_wines.to_csv("wines.csv", index=False)
-    df_smtp.to_csv("smtp.csv", index=False)
-    df_sa.to_csv("sa.csv", index=False)
+    #df_cancer.to_csv("cancer.csv", index=False)
+    #df_iris.to_csv("iris.csv", index=False)
+    #df_wines.to_csv("wines.csv", index=False)
+    #df_smtp.to_csv("smtp.csv", index=False)
+    #df_sa.to_csv("sa.csv", index=False)
     df_gen1.to_csv("gen1.csv", index=False)
     df_gen2.to_csv("gen2.csv", index=False)
     df_gen3.to_csv("gen3.csv", index=False)
-    df_landsat.to_csv("landsat.csv", index=False)
+    #df_landsat.to_csv("landsat.csv", index=False)
 
 
 make_datasets()

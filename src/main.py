@@ -5,6 +5,7 @@ import os
 
 import numpy as np
 import pandas as pd
+from pandas import DataFrame, Series
 
 from sklearn import metrics
 import matplotlib.pyplot as plt
@@ -12,7 +13,7 @@ from matplotlib.figure import Figure
 
 from sklearn.ensemble import IsolationForest as IF
 
-from src.Utility import preprocess_data
+from src.Utility import preprocess_data, drop_outliers
 from src.models.isolationForest.IsolationForest import IsolationForest
 from sklearn.neighbors import LocalOutlierFactor
 from sklearn.svm import OneClassSVM
@@ -191,177 +192,74 @@ def main():
         "pair_plot": False
     }
 
-    #run_iforest_param_experiments(http_parameters)
-    #run_iforest_param_experiments(cancer_parameters)
-    #run_iforest_param_experiments(iris_parameters)
-    #run_iforest_param_experiments(wines_parameters)
-    #run_iforest_param_experiments(smtp_parameters) #too few anomalies with 0.1 row sampling
-    #run_iforest_param_experiments(credit_card_parameters)
-    #run_iforest_param_experiments(sa_parameters)
-    #run_iforest_param_experiments(gen1_parameters)
-    #run_iforest_param_experiments(gen2_parameters)
-    #run_iforest_param_experiments(gen3_parameters)
-    #run_iforest_param_experiments(landsat_parameters)
+    datasets_parameters = []
+    datasets_parameters.extend([gen2_parameters, http_parameters, credit_card_parameters, cancer_parameters, landsat_parameters,
+                     gen1_parameters, gen3_parameters, wines_parameters,
+                     iris_parameters, sa_parameters, smtp_parameters])
 
-    #run_experiment(cancer_parameters)
-    #run_iforest_experiment(cancer_parameters)
+    #auc_time_experiment(datasets_parameters)
 
-    # parameters = {
-    #     "exp_name": "Ddos",
-    #     "data_path": "../datasets/kaggle/ddos/Friday-WorkingHours-Afternoon-DDos.pcap_ISCX.csv",
-    #     "prediction_column": "Label",
-    #     "df_drop_columns": [""],
-    #     "df_sampling_ratios": [.2, .4, .6, .8, 1],
-    # }
+    iforest_experiment_inliers(datasets_parameters)
+
+    # for dp in datasets_parameters:
+    #     run_iforest_param_experiments(dp)
 
 
 
-    # iforest_experiment(exp_name=parameters["exp_name"], file_path=parameters["data_path"], pred_column=parameters["prediction_column"],
-    #                    nb_tree=20, subsampling_size=256, pathlength_height_limit=10, df_sampling_ratio=.2,
-    #                    desired_tpr=.85,
-    #                    plot_save=True)
+def iforest_experiment_inliers(datasets_parameters):
+    for dp in datasets_parameters:
+        train_X, eval_X, train_y, eval_y = preprocess_data(dp["data_path"], dp["prediction_column"])
+        outlier_indexes = train_y[train_y == 1].index.values
+        train_X_inliers = train_X.drop(outlier_indexes)
 
-    # dataset preprocess
-    # train_X, eval_X, _, _ = preprocess_data("../datasets/kaggle/financal_Data/BBCA.JK_weekly_new.csv", None)
-    # train_X, eval_X, train_y, eval_y = preprocess_data("../datasets/sklearn/http.csv", "attack", .2)
-    # train_X, eval_X, train_y, eval_y = preprocess_data("../datasets/kaggle/ddos/Friday-WorkingHours-Afternoon-DDos.pcap_ISCX.csv", "Label")
-    #
-    # # print(list(financal_data.columns.values)) #get columns name
-    # # print(financal_data['Date'].tolist()) #get all values from a column
-    # # print(X_train_set)
-    # # print(X_train_set.index.values)
+        # training with only inliers
+        iforest_experiment_data(train_X_inliers, eval_X, eval_y, f"{dp['exp_name']}_train_inliers", dp["prediction_column"])
 
-    # # add new columns with anomaly score and prediction for each observations
-    # # eval_X['anomaly score'], eval_y['anomaly score'] = scores, scores
-    # # eval_X['anomaly prediction'], eval_y['anomaly prediction'] = prediction_y, prediction_y
-    # # print(eval_X.sort_values(by='anomaly score', ascending=False))
-    # # print(eval_y.sort_values(by='anomaly score', ascending=False))
-    #
-
-    #scatter_exemple()
-
-    print("-------------------------------------------------------------------")
-
-    #run_ocsvm_experiments(cancer_parameters, credit_card_parameters, gen1_parameters, gen2_parameters, gen3_parameters, http_parameters, iris_parameters, sa_parameters, smtp_parameters, wines_parameters, landsat_parameters)
-    #run_lof_experiments(cancer_parameters, credit_card_parameters, gen1_parameters, gen2_parameters, gen3_parameters, http_parameters, iris_parameters, sa_parameters, smtp_parameters, wines_parameters, landsat_parameters)
-    #run_skl_iforest_experiments(cancer_parameters, credit_card_parameters, gen1_parameters, gen2_parameters, gen3_parameters, http_parameters, iris_parameters, sa_parameters, smtp_parameters, wines_parameters, landsat_parameters)
-    #run_iforest_experiments(cancer_parameters, credit_card_parameters, gen1_parameters, gen2_parameters, gen3_parameters, http_parameters, iris_parameters, landsat_parameters, sa_parameters, smtp_parameters, wines_parameters)
+        # training with inliers and outliers
+        iforest_experiment_data(train_X, eval_X, eval_y, dp['exp_name'], dp["prediction_column"])
 
 
-def run_iforest_experiments(cancer_parameters, credit_card_parameters, gen1_parameters, gen2_parameters,
-                            gen3_parameters, http_parameters, iris_parameters, landsat_parameters, sa_parameters,
-                            smtp_parameters, wines_parameters):
+def auc_time_experiment(datasets_parameters):
+    for dp in datasets_parameters:
+        train_X, eval_X, train_y, eval_y = preprocess_data(dp["data_path"], dp["prediction_column"])
 
-    iforest_experiment(cancer_parameters["exp_name"], cancer_parameters["data_path"],
-                       cancer_parameters["prediction_column"], nb_tree=100)
-    iforest_experiment(iris_parameters["exp_name"], iris_parameters["data_path"], iris_parameters["prediction_column"],
-                       nb_tree=100)
-    iforest_experiment(wines_parameters["exp_name"], wines_parameters["data_path"],
-                       wines_parameters["prediction_column"], nb_tree=100)
-    iforest_experiment(smtp_parameters["exp_name"], smtp_parameters["data_path"], smtp_parameters["prediction_column"],
-                       nb_tree=100)
-    iforest_experiment(gen3_parameters["exp_name"], gen3_parameters["data_path"], gen3_parameters["prediction_column"],
-                       nb_tree=100)
-    iforest_experiment(gen2_parameters["exp_name"], gen2_parameters["data_path"], gen2_parameters["prediction_column"],
-                       nb_tree=100)
-    iforest_experiment(gen1_parameters["exp_name"], gen1_parameters["data_path"], gen1_parameters["prediction_column"],
-                       nb_tree=100)
-    iforest_experiment(sa_parameters["exp_name"], sa_parameters["data_path"], sa_parameters["prediction_column"],
-                       nb_tree=100)
-    iforest_experiment(http_parameters["exp_name"], http_parameters["data_path"], http_parameters["prediction_column"],
-                       nb_tree=100)
-    iforest_experiment(credit_card_parameters["exp_name"], credit_card_parameters["data_path"],
-                       credit_card_parameters["prediction_column"], nb_tree=100)
-    iforest_experiment(landsat_parameters["exp_name"], landsat_parameters["data_path"],
-                       landsat_parameters["prediction_column"], nb_tree=100)
+        ocsvm(train_X, eval_X, eval_y, dp["exp_name"], dp["prediction_column"])
+        skl_iforest(train_X, eval_X, eval_y, dp["exp_name"], dp["prediction_column"])
+        iforest_experiment_data(train_X, eval_X, eval_y, dp["exp_name"], dp["prediction_column"])
+
+        # recombining dataframes for LOF experiment
+        X = pd.concat([train_X, eval_X])
+        y = pd.concat([train_y, eval_y])
+
+        lof(X, y, dp["exp_name"], dp["prediction_column"])
 
 
-def run_skl_iforest_experiments(cancer_parameters, credit_card_parameters, gen1_parameters, gen2_parameters, gen3_parameters,
-                                http_parameters, iris_parameters, sa_parameters, smtp_parameters, wines_parameters,
-                                landsat_parameters):
-
-    print("SKLEARN IFOREST EXPERIMENTS")
-    sklearn_iforest(cancer_parameters["exp_name"], cancer_parameters["data_path"], cancer_parameters["prediction_column"])
-    sklearn_iforest(iris_parameters["exp_name"], iris_parameters["data_path"], iris_parameters["prediction_column"])
-    sklearn_iforest(wines_parameters["exp_name"], wines_parameters["data_path"], wines_parameters["prediction_column"])
-    sklearn_iforest(smtp_parameters["exp_name"], smtp_parameters["data_path"], smtp_parameters["prediction_column"])
-    sklearn_iforest(gen3_parameters["exp_name"], gen3_parameters["data_path"], gen3_parameters["prediction_column"])
-    sklearn_iforest(gen2_parameters["exp_name"], gen2_parameters["data_path"], gen2_parameters["prediction_column"])
-    sklearn_iforest(gen1_parameters["exp_name"], gen1_parameters["data_path"], gen1_parameters["prediction_column"])
-    sklearn_iforest(sa_parameters["exp_name"], sa_parameters["data_path"], sa_parameters["prediction_column"])
-    sklearn_iforest(http_parameters["exp_name"], http_parameters["data_path"], http_parameters["prediction_column"])
-    sklearn_iforest(credit_card_parameters["exp_name"], credit_card_parameters["data_path"], credit_card_parameters["prediction_column"])
-    sklearn_iforest(landsat_parameters["exp_name"], landsat_parameters["data_path"], landsat_parameters["prediction_column"])
-
-
-def run_lof_experiments(cancer_parameters, credit_card_parameters, gen1_parameters, gen2_parameters, gen3_parameters,
-                        http_parameters, iris_parameters, sa_parameters, smtp_parameters, wines_parameters, landsat_parameters):
-
-    print("LOF EXPERIMENTS")
-    lof_experiment(cancer_parameters["exp_name"], cancer_parameters["data_path"], cancer_parameters["prediction_column"])
-    lof_experiment(iris_parameters["exp_name"], iris_parameters["data_path"], iris_parameters["prediction_column"])
-    lof_experiment(wines_parameters["exp_name"], wines_parameters["data_path"], wines_parameters["prediction_column"])
-    lof_experiment(smtp_parameters["exp_name"], smtp_parameters["data_path"], smtp_parameters["prediction_column"])
-    lof_experiment(gen3_parameters["exp_name"], gen3_parameters["data_path"], gen3_parameters["prediction_column"])
-    lof_experiment(gen2_parameters["exp_name"], gen2_parameters["data_path"], gen2_parameters["prediction_column"])
-    lof_experiment(gen1_parameters["exp_name"], gen1_parameters["data_path"], gen1_parameters["prediction_column"])
-    lof_experiment(sa_parameters["exp_name"], sa_parameters["data_path"], sa_parameters["prediction_column"])
-    lof_experiment(http_parameters["exp_name"], http_parameters["data_path"], http_parameters["prediction_column"])
-    lof_experiment(credit_card_parameters["exp_name"], credit_card_parameters["data_path"], credit_card_parameters["prediction_column"])
-    lof_experiment(landsat_parameters["exp_name"], landsat_parameters["data_path"], landsat_parameters["prediction_column"])
-
-def run_ocsvm_experiments(cancer_parameters, credit_card_parameters, gen1_parameters, gen2_parameters, gen3_parameters, http_parameters,
-                          iris_parameters, sa_parameters, smtp_parameters, wines_parameters, landsat_parameters):
-    print("OCSVM EXPERIMENTS")
-    ocsvm_experiment(cancer_parameters["exp_name"], cancer_parameters["data_path"], cancer_parameters["prediction_column"])
-    ocsvm_experiment(iris_parameters["exp_name"], iris_parameters["data_path"], iris_parameters["prediction_column"])
-    ocsvm_experiment(wines_parameters["exp_name"], wines_parameters["data_path"], wines_parameters["prediction_column"])
-    ocsvm_experiment(smtp_parameters["exp_name"], smtp_parameters["data_path"], smtp_parameters["prediction_column"])
-    ocsvm_experiment(gen3_parameters["exp_name"], gen3_parameters["data_path"], gen3_parameters["prediction_column"])
-    ocsvm_experiment(gen2_parameters["exp_name"], gen2_parameters["data_path"], gen2_parameters["prediction_column"])
-    ocsvm_experiment(gen1_parameters["exp_name"], gen1_parameters["data_path"], gen1_parameters["prediction_column"])
-    ocsvm_experiment(sa_parameters["exp_name"], sa_parameters["data_path"], sa_parameters["prediction_column"])
-    ocsvm_experiment(http_parameters["exp_name"], http_parameters["data_path"], http_parameters["prediction_column"])
-    ocsvm_experiment(credit_card_parameters["exp_name"], credit_card_parameters["data_path"], credit_card_parameters["prediction_column"])
-    ocsvm_experiment(landsat_parameters["exp_name"], landsat_parameters["data_path"], landsat_parameters["prediction_column"])
-
-
-def sklearn_iforest(exp_name: str, file_path: str, pred_column: str, nb_tree: int = 100, subsampling_size: int = 256, df_sampling_ratio: float = 1, df_features_ratio: float = 1):
-
-    print(f"Running iForest {exp_name} experiment (sklearn version)")
-
-    train_X, eval_X, train_y, eval_y = preprocess_data(file_path, pred_column, df_sampling_ratio, df_features_ratio)
+def skl_iforest(train_X: DataFrame, eval_X: DataFrame, eval_y: Series, exp_name: str, pred_column: str,
+                nb_tree: int = 100, subsampling_size: int = 256, df_sampling_ratio: float = 1, df_features_ratio: float = 1):
 
     start_train_time = time.time()
     clf = IF(n_estimators=nb_tree, max_samples=subsampling_size, warm_start=True, random_state=0)
-
-    #training
+    # training
     clf.fit(train_X)
     end_train_time = time.time()
-
-    #evaluation
+    # evaluation
     start_eval_time = time.time()
     scores = clf.decision_function(eval_X)
     pred_y = clf.predict(eval_X)
     end_eval_time = time.time()
-
     pred_y[pred_y == 1] = 0
     pred_y[pred_y == -1] = 1
-
     auc = metrics.roc_auc_score(eval_y, pred_y)
     f1_score = metrics.f1_score(eval_y, pred_y)
-
     training_time = end_train_time - start_train_time
     evaluation_time = end_eval_time - start_eval_time
     total_time = training_time + evaluation_time
-
     print("Sklearn IForest results")
     print(f"Training time: {training_time} sec")
     print(f"Evaluation time: {evaluation_time} sec")
     print(f"Total time: {total_time}")
     print(f"AUC: {auc}")
     print(f"F1 score: {f1_score}")
-
     exp_parameters = {
         "experiment_name": exp_name,
         "prediction feature": pred_column,
@@ -370,7 +268,6 @@ def sklearn_iforest(exp_name: str, file_path: str, pred_column: str, nb_tree: in
         "training_size": train_X.shape[0],
         "evaluation_size": eval_X.shape[0]
     }
-
     exp_results = {
         "evaluation dataset size": eval_y.shape[0],
         "AUC": auc,
@@ -379,7 +276,6 @@ def sklearn_iforest(exp_name: str, file_path: str, pred_column: str, nb_tree: in
         "evaluation_time": evaluation_time,
         "total_time": total_time,
     }
-
     iforest_infos = {
         "model name": "sklearn iforest",
         "n_estimators": clf.n_estimators,
@@ -392,65 +288,47 @@ def sklearn_iforest(exp_name: str, file_path: str, pred_column: str, nb_tree: in
         "n_jobs": clf.n_jobs,
         "warm_start": clf.warm_start
     }
-
     save_exp_data(f"skl_iforest_{exp_name}", exp_parameters, exp_results, model_infos=iforest_infos)
-
     return exp_results
 
-def lof_experiment(exp_name: str, file_path: str, pred_column: str, df_sampling_ratio: float = 1, df_features_ratio: float = 1):
+
+def lof(X: DataFrame, y: Series, exp_name:str, pred_column: str, df_sampling_ratio: float = 1, df_features_ratio: float = 1):
 
     print(f"Running LOF {exp_name} experiment")
 
-    #train_X, eval_X, train_y, eval_y = preprocess_data(file_path, pred_column, df_sampling_ratio, df_features_ratio)
-    df = pd.read_csv(file_path, sep=r'\s*,\s*', header=0, encoding='ascii', engine='python')
-    X, y = df.drop(pred_column, axis=1), df[pred_column]
-
-    X = X[X.select_dtypes(include=['float64', 'int64']).columns.tolist()]
-
     start_time = time.time()
     print("create LOF model")
-    #clf = LocalOutlierFactor(n_neighbors=n_neighbors, novelty=True, contamination=0.1)
-    #clf = LocalOutlierFactor(n_neighbors=10, novelty=False)
-
+    # clf = LocalOutlierFactor(n_neighbors=n_neighbors, novelty=True, contamination=0.1)
+    # clf = LocalOutlierFactor(n_neighbors=10, novelty=False)
     clf = LocalOutlierFactor(n_neighbors=20)
-
     print("Begin training and evaluation")
     y_pred = clf.fit_predict(X)
-    #n_errors = (y_pred != ground_truth).sum()
+    # n_errors = (y_pred != ground_truth).sum()
     X_scores = clf.negative_outlier_factor_
-
     end_time = time.time()
-
-    #evaluation
-    #X_scores = clf.negative_outlier_factor_
-
+    # evaluation
+    # X_scores = clf.negative_outlier_factor_
     y_pred[y_pred == 1] = 0
     y_pred[y_pred == -1] = 1
-
     total_time = end_time - start_time
-
     auc = metrics.roc_auc_score(y, y_pred)
     f1_score = metrics.f1_score(y, y_pred)
-
     print("LOF results")
     print(f"Total time: {total_time}")
     print(f"AUC: {auc}")
     print(f"F1 score: {f1_score}")
-
     exp_parameters = {
         "experiment_name": exp_name,
         "prediction_feature": pred_column,
         "pre_processing_sampling_size": df_sampling_ratio,
         "pre_processing_feature_size": df_features_ratio,
     }
-
     exp_results = {
-        "dataset size": df.shape[0],
+        "dataset size": X.shape[0],
         "AUC": auc,
         "F1_score": f1_score,
         "total_time": total_time,
     }
-
     lof_infos = {
         "model_name": "LOF",
         "n_neighbors": clf.n_neighbors,
@@ -463,25 +341,20 @@ def lof_experiment(exp_name: str, file_path: str, pred_column: str, df_sampling_
         "n_jobs": clf.n_jobs,
         "novelty": clf.novelty
     }
-
     save_exp_data(f"lof_{exp_name}", exp_parameters, exp_results, model_infos=lof_infos)
-
     return exp_results
 
-def ocsvm_experiment(exp_name: str, file_path: str, pred_column: str, df_sampling_ratio: float = 1, df_features_ratio: float = 1, display_boundary: bool = False):
+
+def ocsvm(train_X: DataFrame, eval_X: DataFrame, eval_y: Series, exp_name: str, pred_column: str, df_sampling_ratio: float = 1, df_features_ratio: float = 1, display_boundary: bool = False):
 
     print(f"Running One-class SVM {exp_name} experiment")
 
-    train_X, eval_X, train_y, eval_y = preprocess_data(file_path, pred_column, df_sampling_ratio, df_features_ratio)
-
     start_train_time = time.time()
     clf = OneClassSVM()
-
     # training
     print("OCSVM training")
     clf.fit(train_X)
     end_train_time = time.time()
-
     # evaluation
     print("OCSVM evaluation")
     start_eval_time = time.time()
@@ -490,7 +363,6 @@ def ocsvm_experiment(exp_name: str, file_path: str, pred_column: str, df_samplin
     pred_y = clf.predict(eval_X)
     end_eval_time = time.time()
     print("end predict")
-
     if display_boundary:
         print("display boundary")
         xx, yy = np.meshgrid(np.linspace(eval_X[:, 0].min(), eval_X[:, 0].max(), 500),
@@ -508,28 +380,21 @@ def ocsvm_experiment(exp_name: str, file_path: str, pred_column: str, df_samplin
         plt.ylim(eval_X[:, 1].min(), eval_X[:, 1].max())
         plt.title("Frontière de décision de l'OCSVM")
         plt.show()
-
-
     print(scores)
     print(pred_y)
-
     pred_y[pred_y == 1] = 0
     pred_y[pred_y == -1] = 1
-
     auc = metrics.roc_auc_score(eval_y, pred_y)
     f1_score = metrics.f1_score(eval_y, pred_y)
-
     training_time = end_train_time - start_train_time
     evaluation_time = end_eval_time - start_eval_time
     total_time = training_time + evaluation_time
-
     print("One-class SVM results")
     print(f"Training time: {training_time} sec")
     print(f"Evaluation time: {evaluation_time} sec")
     print(f"Total time: {total_time} sec")
     print(f"AUC: {auc}")
     print(f"F1 score: {f1_score}")
-
     exp_parameters = {
         "experiment_name": exp_name,
         "prediction_feature": pred_column,
@@ -538,7 +403,6 @@ def ocsvm_experiment(exp_name: str, file_path: str, pred_column: str, df_samplin
         "training_size": train_X.shape[0],
         "evaluation_size": eval_X.shape[0]
     }
-
     exp_results = {
         "evaluation_dataset_size": eval_y.shape[0],
         "AUC": auc,
@@ -547,7 +411,6 @@ def ocsvm_experiment(exp_name: str, file_path: str, pred_column: str, df_samplin
         "evaluation_time": evaluation_time,
         "total_time": total_time,
     }
-
     iforest_infos = {
         "model name": "one class SVM",
         "kernel": clf.kernel,
@@ -561,10 +424,9 @@ def ocsvm_experiment(exp_name: str, file_path: str, pred_column: str, df_samplin
         "cache_size": clf.cache_size,
         "max_iter": clf.max_iter
     }
-
     save_exp_data(f"ocsvm_{exp_name}", exp_parameters, exp_results, model_infos=iforest_infos)
-
     return exp_results
+
 
 def run_iforest_param_experiments(parameters: dict):
     param_mappings = {
@@ -581,12 +443,12 @@ def run_iforest_param_experiments(parameters: dict):
             time_results = []
             for value in parameters[param_key]:
                 exp_name = parameters["exp_name"] + f" {param_name}-{value}"
-                exp_results = iforest_experiment(exp_name=exp_name, file_path=parameters["data_path"],
-                                            pred_column=parameters["prediction_column"],
-                                            desired_tpr=parameters.get("desired_tpr", .85),
-                                            auc_roc= parameters["auc_roc_plot"], anomaly_histogram= parameters["anomaly_histogram_plot"],
-                                            pairplot= parameters["pair_plot"], plot_save=True,
-                                            **{param_name: value})
+                exp_results = iforest_experiment_file(exp_name=exp_name, file_path=parameters["data_path"],
+                                                      pred_column=parameters["prediction_column"],
+                                                      desired_tpr=parameters.get("desired_tpr", .85),
+                                                      auc_roc= parameters["auc_roc_plot"], anomaly_histogram= parameters["anomaly_histogram_plot"],
+                                                      pairplot= parameters["pair_plot"], plot_save=True,
+                                                      **{param_name: value})
                 auc_results.append(exp_results["AUC"])
                 time_results.append(exp_results["total time"])
             fig = auc_time_plot(auc_results, time_results, param_name, parameters[param_key])
@@ -599,9 +461,9 @@ def run_experiment_old(parameters: dict):
         time_results = []
         for samp_ratio in parameters["df_sampling_ratios"]:
             exp_name = parameters["exp_name"] + f" sr-{samp_ratio}"
-            results = iforest_experiment(exp_name=exp_name, file_path=parameters["data_path"],
-                                         pred_column=parameters["prediction_column"], df_sampling_ratio=samp_ratio,
-                                         desired_tpr=.95, plot_save=True)
+            results = iforest_experiment_file(exp_name=exp_name, file_path=parameters["data_path"],
+                                              pred_column=parameters["prediction_column"], df_sampling_ratio=samp_ratio,
+                                              desired_tpr=.95, plot_save=True)
 
             auc_results.append(results["AUC"])
             time_results.append(results["total time"])
@@ -613,9 +475,9 @@ def run_experiment_old(parameters: dict):
         time_results = []
         for feature_ratio in parameters["df_feature_ratios"]:
             exp_name = parameters["exp_name"] + f" fr-{feature_ratio}"
-            results = iforest_experiment(exp_name=exp_name, file_path=parameters["data_path"],
-                                         pred_column=parameters["prediction_column"], df_features_ratio=feature_ratio,
-                                         desired_tpr=.85, plot_save=True)
+            results = iforest_experiment_file(exp_name=exp_name, file_path=parameters["data_path"],
+                                              pred_column=parameters["prediction_column"], df_features_ratio=feature_ratio,
+                                              desired_tpr=.85, plot_save=True)
 
             auc_results.append(results["AUC"])
             time_results.append(results["total time"])
@@ -627,9 +489,9 @@ def run_experiment_old(parameters: dict):
         time_results = []
         for nb_tree in parameters["forest_nb_trees"]:
             exp_name = parameters["exp_name"] + f" nbt-{nb_tree}"
-            results = iforest_experiment(exp_name=exp_name, file_path=parameters["data_path"],
-                                         pred_column=parameters["prediction_column"], nb_tree=nb_tree, desired_tpr=.85,
-                                         plot_save=True)
+            results = iforest_experiment_file(exp_name=exp_name, file_path=parameters["data_path"],
+                                              pred_column=parameters["prediction_column"], nb_tree=nb_tree, desired_tpr=.85,
+                                              plot_save=True)
 
             auc_results.append(results["AUC"])
             time_results.append(results["total time"])
@@ -641,9 +503,9 @@ def run_experiment_old(parameters: dict):
         time_results = []
         for subsamp_size in parameters["forest_subsampling_sizes"]:
             exp_name = parameters["exp_name"] + f" sss-{subsamp_size}"
-            results = iforest_experiment(exp_name=exp_name, file_path=parameters["data_path"],
-                                         pred_column=parameters["prediction_column"], subsampling_size=subsamp_size,
-                                         desired_tpr=.85, plot_save=True)
+            results = iforest_experiment_file(exp_name=exp_name, file_path=parameters["data_path"],
+                                              pred_column=parameters["prediction_column"], subsampling_size=subsamp_size,
+                                              desired_tpr=.85, plot_save=True)
 
             auc_results.append(results["AUC"])
             time_results.append(results["total time"])
@@ -655,9 +517,9 @@ def run_experiment_old(parameters: dict):
         time_results = []
         for hl in parameters["pathlength_height_limit"]:
             exp_name = parameters["exp_name"] + f" hl-{hl}"
-            results = iforest_experiment(exp_name=exp_name, file_path=parameters["data_path"],
-                                         pred_column=parameters["prediction_column"], pathlength_height_limit=hl,
-                                         desired_tpr=.85, plot_save=True)
+            results = iforest_experiment_file(exp_name=exp_name, file_path=parameters["data_path"],
+                                              pred_column=parameters["prediction_column"], pathlength_height_limit=hl,
+                                              desired_tpr=.85, plot_save=True)
 
             auc_results.append(results["AUC"])
             time_results.append(results["total time"])
@@ -665,10 +527,26 @@ def run_experiment_old(parameters: dict):
         auc_time_plot(auc_results, time_results, parameters["pathlength_height_limit"])
 
 
-def iforest_experiment(exp_name: str, file_path: str, pred_column: str, nb_tree: int = 20, subsampling_size: int = 256,
-                        pathlength_height_limit: int = 0,
-                        df_sampling_ratio: float = 1, df_features_ratio: float = 1, desired_tpr: float = .9,
-                        auc_roc: bool = False, anomaly_histogram: bool = False, pairplot: bool = False, plot_save: bool = False) -> dict:
+def iforest_experiment_file(exp_name: str, file_path: str, pred_column: str, nb_tree: int = 20, subsampling_size: int = 256,
+                            pathlength_height_limit: int = 0,
+                            df_sampling_ratio: float = 1, df_features_ratio: float = 1, desired_tpr: float = .9,
+                            auc_roc: bool = False, anomaly_histogram: bool = False, pairplot: bool = False, plot_save: bool = False) -> dict:
+
+    train_X, eval_X, train_y, eval_y = preprocess_data(file_path, pred_column, df_sampling_ratio, df_features_ratio)
+
+    return iforest_experiment_data(train_X, eval_X, eval_y, exp_name, pred_column,
+                                   nb_tree, subsampling_size, pathlength_height_limit,
+                                   df_sampling_ratio, df_features_ratio,
+                                   desired_tpr,
+                                   auc_roc, anomaly_histogram, pairplot, plot_save)
+
+
+def iforest_experiment_data(train_X: DataFrame, eval_X: DataFrame, eval_y: Series, exp_name: str, pred_column: str,
+                            nb_tree: int = 20, subsampling_size: int = 256, pathlength_height_limit: int = 0,
+                            df_sampling_ratio: float = 1, df_features_ratio: float = 1,
+                            desired_tpr: float = .9,
+                            auc_roc: bool = False, anomaly_histogram: bool = False, pairplot: bool = False,
+                            plot_save: bool = False):
 
     print(f"\nRunning experiment {exp_name} with the following parameters\n"
           f"- Prediction feature: {pred_column}\n"
@@ -678,17 +556,14 @@ def iforest_experiment(exp_name: str, file_path: str, pred_column: str, nb_tree:
           f"- Subsampling size: {subsampling_size}\n"
           f"- Pathlength height limit: {pathlength_height_limit} nodes\n")
 
-    train_X, eval_X, train_y, eval_y = preprocess_data(file_path, pred_column, df_sampling_ratio, df_features_ratio)
-
-    #check if evaluationset contains 2 classes to perform evaluations metrics
-
     print("===- Begin training phase -===")
     iforest = IsolationForest(train_X, nb_tree, subsampling_size)
     iforest.fit()
+
     print(f"Training time: {iforest.training_time} seconds")
+
     print("===- End training phase -===")
     print()
-
     print("===- Begin evaluation phase -===")
     scores = iforest.predict(eval_X, pathlength_height_limit)
     print(f"Score compute in: {iforest.evaluation_time} seconds")
@@ -704,13 +579,13 @@ def iforest_experiment(exp_name: str, file_path: str, pred_column: str, nb_tree:
     fpr, tpr, _ = metrics.roc_curve(eval_y, prediction_y)
     auc = metrics.roc_auc_score(eval_y, prediction_y)
     f1_score = metrics.f1_score(eval_y, prediction_y)
-
     print(f"AUC: {auc}")
     print(f"F1 score: {f1_score}")
     print()
 
-    eval_X['Anomaly score'] = scores
-    eval_X['Anomaly prediction'] = prediction_y
+    #add scores and predictions
+    #eval_X['Anomaly score'] = scores
+    #eval_X['Anomaly prediction'] = prediction_y
 
     auc_roc_fig, anomalies_hist_fig, pairplot_fig = None, None, None
     if auc_roc:
@@ -720,12 +595,11 @@ def iforest_experiment(exp_name: str, file_path: str, pred_column: str, nb_tree:
         print("Performing Anomaly histogram")
         anomalies_hist_fig = anomalies_histogram_plot(scores, eval_y, threshold)
     if pairplot:
-        if eval_X.shape[1] <=5:
+        if eval_X.shape[1] <= 5:
             print("Performing Scatter matrix plot (pairplot)")
             pairplot_fig = anomaly_pairplot(eval_X)
         else:
             print("unable to perform scatter matrix because of the high number of features")
-
     exp_parameters = {
         "prediction feature": pred_column,
         "pre-processing sampling size": df_sampling_ratio,
@@ -734,7 +608,6 @@ def iforest_experiment(exp_name: str, file_path: str, pred_column: str, nb_tree:
         "subsampling size": subsampling_size,
         "pathlength height limit": pathlength_height_limit
     }
-
     exp_results = {
         "evaluation dataset size": eval_y.shape[0],
         "AUC": auc,
@@ -744,7 +617,6 @@ def iforest_experiment(exp_name: str, file_path: str, pred_column: str, nb_tree:
         "anomaly threshold": threshold,
         "total time": iforest.training_time + iforest.evaluation_time,
     }
-
     exp_figures = {}
     if plot_save:
         exp_figures = {
@@ -752,32 +624,10 @@ def iforest_experiment(exp_name: str, file_path: str, pred_column: str, nb_tree:
             "Anomalies histogram": anomalies_hist_fig,
             "Scatter matrix": pairplot_fig
         }
-
-    save_exp_data( f"iforest_{exp_name}", exp_parameters, exp_results, model_infos= iforest.get_parameters(), exp_figures=exp_figures)
-
+    save_exp_data(f"iforest_{exp_name}", exp_parameters, exp_results, model_infos=iforest.get_parameters(),
+                  exp_figures=exp_figures)
     plt.close()
-
     return exp_results
-
-
-# def compute_auc(anomalies_labels, anomalies_scores):
-#     df = pd.DataFrame({'score': anomalies_scores, 'label': anomalies_labels})
-#     true_anomalies = df[df['label'] == 1]
-#     df.sort_values(by='score', ascending=False)
-#
-#     true_anomalies_cnt = true_anomalies.shape[0]
-#     true_normal_points_cnt = df.shape[0] - true_anomalies_cnt
-#
-#     # get n firsts row in the ranked list
-#     df = df.head(true_anomalies_cnt)
-#
-#     S = sum(df.index.values)
-#
-#     # S = sum(rank for rank, label in enumerate(scores_labels, start=1) if label)
-#
-#     AUC = (S - ((true_anomalies_cnt ** 2 + true_anomalies_cnt) / 2)) / (true_anomalies_cnt * true_normal_points_cnt)
-#
-#     return AUC
 
 
 def save_exp_data(exp_title: str, exp_parameters: dict, exp_results: dict, model_infos: dict = None,
