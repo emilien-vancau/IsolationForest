@@ -53,6 +53,7 @@ def anomalies_histogram_plot(scores, y, anomaly_threshold):
     axes[1].set_ylabel("anomaly samples counter")
 
     fig.suptitle("Anomalies histogram")
+    plt.close()
 
     return fig
 
@@ -72,6 +73,7 @@ def auc_roc_plot(auc, eval_y, exp_name, fpr, prediction_y, tpr):
     ax2.legend(loc=4)
     plt.subplots_adjust(wspace=0.5)
     figure = plt.gcf()
+    plt.close()
 
     return figure
 
@@ -92,7 +94,7 @@ def auc_time_plot(auc_results, time_results, param_name, param_array):
 
     fig, ax1 = plt.subplots()
     ax2 = ax1.twinx()
-    fig.suptitle(f"AUC/TIME title")
+    fig.suptitle(f"AUC/TIME")
 
     ax1.plot(param_array, time_results, linestyle='--', color="#69b3a2", label='Temps', marker='o')
     ax2.plot(param_array, auc_results, color="#3399e6", label='AUC', marker='o')
@@ -109,5 +111,6 @@ def auc_time_plot(auc_results, time_results, param_name, param_array):
     ax1.set_ylabel("Time (s)")
     ax2.set_ylabel("AUC")
     #fig.grid(True)
+    plt.close()
 
     return fig

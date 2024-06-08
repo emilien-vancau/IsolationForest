@@ -10,6 +10,7 @@ from src.Utility import get_size_ratio
 def create_anomaly_dataset(n_samples: int, n_features: int, outiers_percentage: float, n_informative: int,
                            n_redundant: int,
                            class_sep: int, n_clusters_per_class: int, random_state: int = 4):
+
     X, y = make_classification(n_samples=n_samples, n_features=n_features, n_redundant=n_redundant,
                                n_clusters_per_class=n_clusters_per_class,
                                n_informative=n_informative, class_sep=class_sep, weights=[1], flip_y=0,
@@ -33,6 +34,37 @@ def create_anomaly_dataset(n_samples: int, n_features: int, outiers_percentage: 
 
     return df
 
+def create_anomaly_dataset_experimental(n_samples: int, n_features: int, outiers_percentage: float, n_informative: int,
+                           n_redundant: int,
+                           class_sep: int, n_clusters_per_class: int, random_state: int = 4):
+
+    X, y = make_classification(n_samples=n_samples, n_features=n_features, n_redundant=n_redundant,
+                               n_clusters_per_class=n_clusters_per_class,
+                               n_informative=n_informative, class_sep=class_sep, weights=[1], flip_y=0,
+                               random_state=random_state)
+
+    df = pd.DataFrame(X, columns=[f"feature_{i}" for i in range(X.shape[1])])
+    df["label"] = y
+
+    n_outliers = get_size_ratio(n_samples, outiers_percentage)
+
+    # randomly select inliers as outliers
+    outlier_indices = np.random.choice(df.index, size=n_outliers, replace=False)
+    #outliers = np.random.uniform(low=df.min().min(), high=df.max().max(), size=(n_outliers, n_features))
+
+    # generate anomalies close to inliers
+    anomaly_magnitude = 0.5  # adjust this value to control the anomaly distance
+    outliers = df.loc[outlier_indices, df.columns[:-1]] + np.random.normal(loc=0, scale=anomaly_magnitude,
+                                                                           size=(n_outliers, n_features))
+
+    # replace randomly selected inliers with outliers
+    df.loc[outlier_indices, df.columns[:-1]] = outliers
+    df.loc[outlier_indices, 'label'] = 1
+
+    # shuffle dataframe
+    df = df.sample(frac=1, random_state=random_state).reset_index(drop=True)
+
+    return df
 
 def make_datasets():
     # Get Breast cancer dataset
@@ -84,19 +116,20 @@ def make_datasets():
     print(sa_proportions)
 
     # Generate classification datasets
-    df_gen1 = create_anomaly_dataset(n_samples=1000, n_features=250, outiers_percentage=.07,
-                                     n_informative=2, n_redundant=0, class_sep=1, n_clusters_per_class=2)
+    df_gen1 = create_anomaly_dataset_experimental(n_samples=1000, n_features=250, outiers_percentage=.07,
+                                     n_informative=1, n_redundant=0, class_sep=1, n_clusters_per_class=1)
     gen1_proportions = df_gen1['label'].value_counts(normalize=True)
     print("Gen1 Proportions")
     print(gen1_proportions)
 
-    df_gen2 = create_anomaly_dataset(n_samples=300, n_features=3, outiers_percentage=.01,
+
+    df_gen2 = create_anomaly_dataset_experimental(n_samples=300, n_features=3, outiers_percentage=.01,
                                      n_informative=1, n_redundant=0, class_sep=1, n_clusters_per_class=1)
     gen2_proportions = df_gen2['label'].value_counts(normalize=True)
     print("Gen2 Proportions")
     print(gen2_proportions)
 
-    df_gen3 = create_anomaly_dataset(n_samples=30, n_features=10, outiers_percentage=.15,
+    df_gen3 = create_anomaly_dataset_experimental(n_samples=30, n_features=10, outiers_percentage=.15,
                                      n_informative=2, n_redundant=0, class_sep=1, n_clusters_per_class=2)
     gen3_proportions = df_gen3['label'].value_counts(normalize=True)
     print("Gen3 Proportions")
@@ -118,10 +151,11 @@ def make_datasets():
     #df_wines.to_csv("wines.csv", index=False)
     #df_smtp.to_csv("smtp.csv", index=False)
     #df_sa.to_csv("sa.csv", index=False)
-    df_gen1.to_csv("gen1.csv", index=False)
+    #df_gen1.to_csv("gen1.csv", index=False)
     df_gen2.to_csv("gen2.csv", index=False)
     df_gen3.to_csv("gen3.csv", index=False)
     #df_landsat.to_csv("landsat.csv", index=False)
+
 
 
 make_datasets()
