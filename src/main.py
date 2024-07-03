@@ -14,7 +14,7 @@ from matplotlib.figure import Figure
 
 from sklearn.ensemble import IsolationForest as IF
 
-from src.Utility import preprocess_data, drop_outliers
+from src.Utility import preprocess_data
 from src.models.isolationForest.IsolationForest import IsolationForest
 from sklearn.neighbors import LocalOutlierFactor
 from sklearn.svm import OneClassSVM
@@ -203,73 +203,228 @@ def main():
     # iris_parameters, sa_parameters, smtp_parameters])
     datasets_parameters.extend([gen3_parameters, iris_parameters])
 
-    #auc_time_experiment(datasets_parameters)
+    #df_inlier_exp = mean_experiment_inliers(datasets_parameters, nb_run=10)
+    #df_inlier_exp.to_csv(f"{INLIERS_ONLY_EXP_FILEPATH}mean results.csv", index=False)
 
-    #iforest_experiment_inliers(datasets_parameters)
-
-    for dp in datasets_parameters:
-        run_iforest_param_experiments(dp)
+    df_auc_time_exp = mean_experiment_auc_time(datasets_parameters, nb_run=2)
+    df_auc_time_exp.to_csv(f"{AUC_TIME_EXP_FILEPATH}mean results.csv", index=False)
 
 
-def iforest_experiment_inliers(datasets_parameters):
-    for dp in datasets_parameters:
-        try:
-            train_X, eval_X, train_y, eval_y = preprocess_data(dp["data_path"], dp["prediction_column"])
 
-            # Separating inliers from outliers in training data
-            outlier_indexes = train_y[train_y == 1].index.values
-            train_X_inliers = train_X.drop(outlier_indexes)
+def mean_experiment_inliers(datasets_parameters, nb_run: int):
 
-            exp_name = dp['exp_name']
+    dataset_names = []
+    mean_auc_inliers = []
+    mean_auc = []
 
-            # Experiment only with inliers
-            exp_name_inlier = f"{exp_name}_train_inliers"
-            exp_parameters, forest_parameters, exp_results, exp_figures = iforest_experiment_data(
-                train_X_inliers, eval_X, eval_y, exp_name_inlier, dp["prediction_column"]
-            )
-            save_exp_data(f"iforest_{exp_name_inlier}", exp_parameters, exp_results, INLIERS_ONLY_EXP_FILEPATH,
+    for dataset_parameters in datasets_parameters:
+
+        auc_results = []
+        auc_inliers_results = []
+
+        for i in range(nb_run):
+            auc, auc_inlier = inliers_experiment(dataset_parameters, i)
+
+            auc_results.append(auc)
+            auc_inliers_results.append(auc_inlier)
+
+        dataset_names.append(dataset_parameters["exp_name"])
+        mean_auc_inliers.append(np.mean(auc_inliers_results))
+        mean_auc.append(np.mean(auc_results))
+
+    data = {'dataset': dataset_names,
+            'without outliers': mean_auc,
+            'with outliers': mean_auc_inliers
+            }
+
+    return pd.DataFrame(data)
+
+def inliers_experiment(parameters: dict, current_run: int):
+    try:
+        train_X, eval_X, train_y, eval_y = preprocess_data(parameters["data_path"], parameters["prediction_column"])
+
+        # Separating inliers from outliers in training data
+        outlier_indexes = train_y[train_y == 1].index.values
+        train_X_inliers = train_X.drop(outlier_indexes)
+
+        exp_name = parameters['exp_name']
+
+        # Experiment without outliers
+        exp_name_inlier = f"{exp_name}_train_inliers"
+        exp_parameters, forest_parameters, exp_results, exp_figures = iforest_experiment_data(
+            train_X_inliers, eval_X, eval_y, exp_name_inlier, parameters["prediction_column"]
+        )
+
+        auc_inlier_result = exp_results['AUC']
+        save_exp_data(f"iforest_run_{current_run}_{exp_name_inlier}", exp_parameters, exp_results, INLIERS_ONLY_EXP_FILEPATH,
+                      model_infos=forest_parameters, exp_figures=exp_figures)
+
+        # Experiments with outliers
+        exp_parameters, forest_parameters, exp_results, exp_figures = iforest_experiment_data(
+            train_X, eval_X, eval_y, exp_name, parameters["prediction_column"]
+        )
+
+        auc_result = exp_results['AUC']
+        save_exp_data(f"iforest_run_{current_run}_{exp_name}", exp_parameters, exp_results, INLIERS_ONLY_EXP_FILEPATH,
                           model_infos=forest_parameters, exp_figures=exp_figures)
 
-            # Experiments with inliers and outliers
-            exp_parameters, forest_parameters, exp_results, exp_figures = iforest_experiment_data(
-                train_X, eval_X, eval_y, exp_name, dp["prediction_column"]
-            )
-            save_exp_data(f"iforest_{exp_name}", exp_parameters, exp_results, INLIERS_ONLY_EXP_FILEPATH,
-                          model_infos=forest_parameters, exp_figures=exp_figures)
+        return auc_result, auc_inlier_result
 
-        except FileNotFoundError as e:
-            logging.error(f"File not found: {e}")
-        except Exception as e:
-            logging.error(f"Error while processing {dp['data_path']}: {e}")
+    except FileNotFoundError as e:
+        logging.error(f"File not found: {e}")
+    except Exception as e:
+        logging.error(f"Error while processing {parameters['data_path']}: {e}")
+
+def mean_experiment_auc_time(dataset_parameters, nb_run: int):
+    dataset_names = []
+    algo_means = {}
+
+    for parameters in dataset_parameters:
+        dataset_names.append(parameters["exp_name"])
+        summary = {}
+
+        for i in range(nb_run):
+            results = auc_time_experiment(parameters, i)
+
+            #Add iteratively values from the run before computing the mean
+            for algo, metrics in results.items():
+                if algo not in summary:
+                    summary[algo] = {
+                        'AUC': [],
+                        'training time': [],
+                        'evaluation time': [],
+                        'total time': []
+                    }
+
+                if "AUC" in metrics:
+                    summary[algo]["AUC"].append(metrics["AUC"])
+                if "training time" in metrics:
+                    summary[algo]["training time"].append(metrics["training time"])
+                if "evaluation time" in metrics:
+                    summary[algo]["evaluation time"].append(metrics["evaluation time"])
+                if "total time" in metrics:
+                    summary[algo]["total time"].append(metrics["total time"])
+
+        #Compute mean value for each algorithms for the current dataset
+        for algo, metrics in summary.items():
+            if algo not in algo_means:
+                algo_means[algo] = {
+                    "AUC": [],
+                    "training_time": [],
+                    "evaluation_time": [],
+                    "total_time": []
+                }
+            for metric, values in metrics.items():
+                if values:
+                    mean_value = np.mean(values)
+                else:
+                    mean_value = None
+
+                if metric == "AUC":
+                    algo_means[algo]["AUC"].append(mean_value)
+                elif metric == "training time":
+                    algo_means[algo]["training_time"].append(mean_value)
+                elif metric == "evaluation time":
+                    algo_means[algo]["evaluation_time"].append(mean_value)
+                elif metric == "total time":
+                    algo_means[algo]["total_time"].append(mean_value)
+
+    #convert algo_means into a Dataframe
+    df_parts = {k: pd.DataFrame(v) for k, v in algo_means.items()}
+    df = pd.concat(df_parts, axis=1)
+    df.insert(0, 'dataset_names', dataset_names)
+
+    return df
 
 
-def auc_time_experiment(datasets_parameters):
-    for dp in datasets_parameters:
-        try:
-            train_X, eval_X, train_y, eval_y = preprocess_data(dp["data_path"], dp["prediction_column"])
-            exp_name = dp["exp_name"]
+def auc_time_experiment(parameters: dict, current_run: int = 1):
 
-            exp_parameters, model_infos, exp_results = ocsvm(train_X, eval_X, eval_y, dp["exp_name"], dp["prediction_column"])
-            save_exp_data(f"ocsvm_{exp_name}", exp_parameters, exp_results, AUC_TIME_EXP_FILEPATH, model_infos=model_infos)
+    train_X, eval_X, train_y, eval_y = preprocess_data(parameters["data_path"], parameters["prediction_column"])
 
-            exp_parameters, model_infos, exp_results = skl_iforest(train_X, eval_X, eval_y, dp["exp_name"], dp["prediction_column"])
-            save_exp_data(f"skl_iforest_{exp_name}", exp_parameters, exp_results, AUC_TIME_EXP_FILEPATH, model_infos=model_infos)
+    auc_time_results = {}
 
-            exp_parameters, forest_parameters, exp_results, _ = iforest_experiment_data(train_X, eval_X, eval_y, dp["exp_name"], dp["prediction_column"], nb_tree=100)
-            save_exp_data(f"iforest_{exp_name}", exp_parameters, exp_results, AUC_TIME_EXP_FILEPATH, model_infos=forest_parameters)
+    ocsvm_results = run_ocsvm(train_X, eval_X, eval_y, parameters, current_run)
+    auc_time_results.update(ocsvm_results)
 
-            # recombining dataframes for LOF experiment
-            X = pd.concat([train_X, eval_X])
-            y = pd.concat([train_y, eval_y])
+    skl_iforest_results = run_skl_iforest(train_X, eval_X, eval_y, parameters, current_run)
+    auc_time_results.update(skl_iforest_results)
 
-            exp_parameters, model_infos, exp_results = lof(X, y, dp["exp_name"], dp["prediction_column"])
-            save_exp_data(f"lof_{exp_name}", exp_parameters, exp_results, AUC_TIME_EXP_FILEPATH, model_infos=model_infos)
+    iforest_results = run_iforest(train_X, eval_X, eval_y, parameters, current_run)
+    auc_time_results.update(iforest_results)
 
-        except FileNotFoundError as e:
-            logging.error(f"File not found: {e}")
-        except Exception as e:
-            logging.error(f"Error while processing {dp['data_path']}: {e}")
+    lof_results = run_lof(train_X, eval_X, train_y, eval_y, parameters, current_run)
+    auc_time_results.update(lof_results)
 
+    return auc_time_results
+
+def run_skl_iforest(train_X, eval_X, eval_y, parameters:dict, current_run: int):
+
+    exp_parameters, model_infos, exp_results = skl_iforest(train_X, eval_X, eval_y, parameters["exp_name"],
+                                                           parameters["prediction_column"])
+
+    results = {"skl_iforest": {
+        "AUC": exp_results["AUC"],
+        "training time": exp_results["training_time"],
+        "evaluation time": exp_results["evaluation_time"],
+        "total time": exp_results["total_time"]}
+    }
+
+    save_exp_data(f"skl_iforest_{parameters['exp_name']}_run_{current_run}", exp_parameters, exp_results, AUC_TIME_EXP_FILEPATH,
+                  model_infos=model_infos)
+
+    return results
+
+def run_iforest(train_X, eval_X, eval_y, parameters, current_run: int):
+
+    exp_parameters, forest_parameters, exp_results, _ = iforest_experiment_data(train_X, eval_X, eval_y,
+                                                                                parameters["exp_name"],
+                                                                                parameters["prediction_column"],
+                                                                                nb_tree=100)
+
+    results = {"iforest": {
+        "AUC": exp_results["AUC"],
+        "training time": exp_results["training time"],
+        "evaluation time": exp_results["evaluation time"],
+        "total time": exp_results["total time"]}
+    }
+
+    save_exp_data(f"iforest_{parameters['exp_name']}_run_{current_run}", exp_parameters, exp_results, AUC_TIME_EXP_FILEPATH,
+                  model_infos=forest_parameters)
+
+    return results
+
+def run_ocsvm(train_X, eval_X, eval_y, parameters: dict, current_run: int):
+
+    exp_parameters, model_infos, exp_results = ocsvm(train_X, eval_X, eval_y, parameters["exp_name"],
+                                                     parameters["prediction_column"])
+    results = {"ocsvm": {
+        "AUC": exp_results["AUC"],
+        "training time": exp_results["training_time"],
+        "evaluation time": exp_results["evaluation_time"],
+        "total time": exp_results["total_time"]}
+    }
+
+    save_exp_data(f"ocsvm_{parameters['exp_name']}_run_{current_run}", exp_parameters, exp_results, AUC_TIME_EXP_FILEPATH,
+                  model_infos=model_infos)
+
+    return results
+
+def run_lof(train_X, eval_X, train_y, eval_y, parameters: dict, current_run: int):
+
+    # recombining dataframes for LOF experiment
+    X = pd.concat([train_X, eval_X])
+    y = pd.concat([train_y, eval_y])
+
+    exp_parameters, model_infos, exp_results = lof(X, y, parameters["exp_name"], parameters["prediction_column"])
+    results = {"lof": {
+        "AUC": exp_results["AUC"],
+        "total time": exp_results["total_time"]}
+    }
+
+    save_exp_data(f"lof_{parameters['exp_name']}_run_{current_run}", exp_parameters, exp_results, AUC_TIME_EXP_FILEPATH,
+                  model_infos=model_infos)
+
+    return results
 
 def skl_iforest(train_X: DataFrame, eval_X: DataFrame, eval_y: Series, exp_name: str, pred_column: str,
                 nb_tree: int = 100, subsampling_size: int = 256, df_sampling_ratio: float = 1,
@@ -585,8 +740,11 @@ def iforest_experiment_data(train_X: DataFrame, eval_X: DataFrame, eval_y: Serie
         "TPR": tpr[1],
         "FPR": fpr[1],
         "anomaly threshold": threshold,
+        "training time": iforest.training_time,
+        "evaluation time": iforest.evaluation_time,
         "total time": iforest.training_time + iforest.evaluation_time,
     }
+
     exp_figures = {}
     if plot_save:
         exp_figures = {
@@ -597,6 +755,7 @@ def iforest_experiment_data(train_X: DataFrame, eval_X: DataFrame, eval_y: Serie
 
     plt.close()
     return exp_parameters, forest_parameters, exp_results, exp_figures
+
 
 
 def save_exp_data(exp_title: str, exp_parameters: dict, exp_results: dict, save_path: str, model_infos: dict = None,
