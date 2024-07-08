@@ -201,12 +201,15 @@ def main():
     # datasets_parameters.extend([gen2_parameters, http_parameters, credit_card_parameters, cancer_parameters, landsat_parameters,
     # gen1_parameters, gen3_parameters, wines_parameters,
     # iris_parameters, sa_parameters, smtp_parameters])
-    datasets_parameters.extend([gen3_parameters, iris_parameters])
+    #datasets_parameters.extend([gen3_parameters, iris_parameters])
+
+    datasets_parameters.extend(
+        [credit_card_parameters, sa_parameters])
 
     #df_inlier_exp = mean_experiment_inliers(datasets_parameters, nb_run=10)
     #df_inlier_exp.to_csv(f"{INLIERS_ONLY_EXP_FILEPATH}mean results.csv", index=False)
 
-    df_auc_time_exp = mean_experiment_auc_time(datasets_parameters, nb_run=2)
+    df_auc_time_exp = mean_experiment_auc_time(datasets_parameters, nb_run=10)
     df_auc_time_exp.to_csv(f"{AUC_TIME_EXP_FILEPATH}mean results.csv", index=False)
 
 
@@ -535,7 +538,7 @@ def lof(X: DataFrame, y: Series, exp_name: str, pred_column: str, df_sampling_ra
 
 
 def ocsvm(train_X: DataFrame, eval_X: DataFrame, eval_y: Series, exp_name: str, pred_column: str,
-          df_sampling_ratio: float = 1, df_features_ratio: float = 1, display_boundary: bool = False):
+          df_sampling_ratio: float = 1, df_features_ratio: float = 1):
     print(f"Running One-class SVM {exp_name} experiment")
 
     start_train_time = time.time()
@@ -552,23 +555,7 @@ def ocsvm(train_X: DataFrame, eval_X: DataFrame, eval_y: Series, exp_name: str, 
     pred_y = clf.predict(eval_X)
     end_eval_time = time.time()
     print("end predict")
-    if display_boundary:
-        print("display boundary")
-        xx, yy = np.meshgrid(np.linspace(eval_X[:, 0].min(), eval_X[:, 0].max(), 500),
-                             np.linspace(eval_X[:, 1].min(), eval_X[:, 1].max(), 500))
-        print("end mesh")
-        Z = clf.decision_function(np.c_[xx.ravel(), yy.ravel()])
-        print("decision func")
-        Z = Z.reshape(xx.shape)
-        print("reshape")
 
-        print("plt")
-        plt.contour(xx, yy, Z, levels=[0], linewidths=2, colors='black')
-        plt.scatter(eval_X[:, 0], eval_X[:, 1], color='red')
-        plt.xlim(eval_X[:, 0].min(), eval_X[:, 0].max())
-        plt.ylim(eval_X[:, 1].min(), eval_X[:, 1].max())
-        plt.title("Frontière de décision de l'OCSVM")
-        plt.show()
     # print(scores)
     # print(pred_y)
     pred_y[pred_y == 1] = 0
