@@ -2,6 +2,10 @@ import pandas as pd
 from pandas import DataFrame
 from sklearn.model_selection import StratifiedShuffleSplit, train_test_split
 
+EXPERIMENT_FILEPATH = "./experiments results/"
+INLIERS_ONLY_EXP_FILEPATH = EXPERIMENT_FILEPATH + "inliers only/"
+AUC_TIME_EXP_FILEPATH = EXPERIMENT_FILEPATH + "auc_time/"
+PARAMETERS_EXP_FILEPATH = EXPERIMENT_FILEPATH + "parameters/"
 
 def get_size_ratio(size: int, ratio: float):
     if 0 < ratio <= 1:
@@ -77,3 +81,5 @@ def display_class_proportions(df: DataFrame, label_column: str):
 
 def display_firsts_anomalies(df: DataFrame, n: int = 10):
     pass
+
+

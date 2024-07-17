@@ -40,9 +40,9 @@ for i in range(len(degrees)):
     )
 
     X_test = np.linspace(0, 1, 100)
-    plt.plot(X_test, pipeline.predict(X_test[:, np.newaxis]), label="Model prediction")
-    plt.plot(X_test, true_fun(X_test), label="True function")
-    plt.scatter(X, y, edgecolor="b", s=20, label="Samples")
+    plt.plot(X_test, pipeline.predict(X_test[:, np.newaxis]), label="Prédiction du modèle")
+    plt.plot(X_test, true_fun(X_test), label="Fonction de base")
+    plt.scatter(X, y, edgecolor="b", s=20, label="Échantillons")
     plt.xlabel("X")
     plt.ylabel("y")
     plt.xlim((0, 1))
@@ -50,7 +50,7 @@ for i in range(len(degrees)):
 
     plt.legend(loc="best")
     plt.title(
-        "Degree {}".format(
+        "Degré {}".format(
             degrees[i]
         )
     )

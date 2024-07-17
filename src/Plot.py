@@ -114,3 +114,17 @@ def auc_time_plot(auc_results, time_results, param_name, param_array):
     plt.close()
 
     return fig
+
+def auc_dist_factor_plot(auc_results, dist_factors):
+    plt.figure(figsize=(10, 6))
+    plt.plot(dist_factors, auc_results, marker='o', linestyle='-', color='b', label='AUC vs Facteur de distance')
+
+    # Ajouter des labels et un titre
+    plt.xlabel('Facteur de distance')
+    plt.ylabel('AUC')
+    plt.title('AUC en fonction du Facteur de distance')
+    plt.legend()
+
+    # Afficher le plot
+    plt.grid(True)
+    plt.show()
