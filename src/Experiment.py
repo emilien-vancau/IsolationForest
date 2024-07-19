@@ -15,8 +15,10 @@ from sklearn.ensemble import IsolationForest as IF
 from sklearn.neighbors import LocalOutlierFactor
 from sklearn.svm import OneClassSVM
 
-from src.Plot import auc_time_plot, auc_roc_plot, anomalies_histogram_plot, anomaly_pairplot
-from src.Utility import preprocess_data, INLIERS_ONLY_EXP_FILEPATH, AUC_TIME_EXP_FILEPATH, PARAMETERS_EXP_FILEPATH
+from src.Plot import auc_time_plot, auc_roc_plot, anomalies_histogram_plot, anomaly_pairplot, auc_dist_factor_plot
+from src.Utility import preprocess_data_file, INLIERS_ONLY_EXP_FILEPATH, AUC_TIME_EXP_FILEPATH, PARAMETERS_EXP_FILEPATH, \
+    preprocess_data
+from src.models.dataset.CreateDatasets import create_anomalies_clusters_dataset
 from src.models.isolationForest.IsolationForest import IsolationForest
 
 
@@ -80,7 +82,7 @@ def mean_experiment_inliers(datasets_parameters, nb_run: int):
 
 def inliers_experiment(parameters: dict, current_run: int):
     try:
-        train_X, eval_X, train_y, eval_y = preprocess_data(parameters["data_path"], parameters["prediction_column"])
+        train_X, eval_X, train_y, eval_y = preprocess_data_file(parameters["data_path"], parameters["prediction_column"])
 
         # Separating inliers from outliers in training data
         outlier_indexes = train_y[train_y == 1].index.values
@@ -180,7 +182,7 @@ def mean_experiment_auc_time(dataset_parameters, nb_run: int):
 
 def auc_time_experiment(parameters: dict, current_run: int = 1):
 
-    train_X, eval_X, train_y, eval_y = preprocess_data(parameters["data_path"], parameters["prediction_column"])
+    train_X, eval_X, train_y, eval_y = preprocess_data_file(parameters["data_path"], parameters["prediction_column"])
 
     auc_time_results = {}
 
@@ -198,6 +200,55 @@ def auc_time_experiment(parameters: dict, current_run: int = 1):
 
     return auc_time_results
 
+#Masking experiment
+def mean_experiment_hlimit(exp_parameters: dict, height_limit: int = 6):
+
+    for i in range(height_limit):
+        pass
+
+
+def hlimit_experiment():
+    pass
+
+
+def dist_factor_experiment(df: DataFrame, exp_name: str, prediction_column: str, current_factor: int,  current_run: int):
+    train_X, eval_X, _, eval_y = preprocess_data(df, prediction_column, sample_row_ratio=1, sample_column_ratio=1)
+
+    exp_parameters, forest_parameters, exp_results, _ = iforest_experiment_data(train_X, eval_X, eval_y, exp_name, prediction_column)
+
+    save_exp_data(f"iforest_{exp_name}-dist_factor_{current_factor}-run_{current_run}", exp_parameters, exp_results,
+                  PARAMETERS_EXP_FILEPATH,
+                  model_infos=forest_parameters)
+
+    return exp_results["AUC"]
+
+#Swamping experiment
+def mean_experiment_dist_factor(exp_parameters: dict, nb_run: int = 1):
+
+    mean_auc = []
+
+    for factor in exp_parameters["distance_factors"]:
+
+        #gen data
+        df = create_anomalies_clusters_dataset(nb_points=exp_parameters["nb_points"], contamination_ratio=exp_parameters["contamination_ratio"], nb_anomaly_clusters=exp_parameters["nb_anomaly_clusters"],
+                                                           anomalies_distance_factor=factor, anomaly_spread=exp_parameters["anomaly_spread"])
+
+        exp_parameters.update({"prediction_column": "labels"}) #default prediction column name for this experiment
+
+        auc_results = []
+
+        for i in range(nb_run):
+            auc = dist_factor_experiment(df, exp_parameters["exp_name"], exp_parameters["prediction_column"], factor, i)
+            #do experiment
+            auc_results.append(auc)
+
+        mean_auc.append(np.mean(auc_results))
+
+    fig = auc_dist_factor_plot(mean_auc, exp_parameters["distance_factors"])
+
+    save_exp_figure(fig, PARAMETERS_EXP_FILEPATH, f"{exp_parameters['exp_name']}_distance_factors")
+
+    return mean_auc
 
 def run_skl_iforest(train_X, eval_X, eval_y, parameters:dict, current_run: int):
 
@@ -218,12 +269,14 @@ def run_skl_iforest(train_X, eval_X, eval_y, parameters:dict, current_run: int):
     return results
 
 
-def run_iforest(train_X, eval_X, eval_y, parameters, current_run: int):
+def run_iforest(train_X, eval_X, eval_y, parameters, current_run: int, nb_tree: int = 100, subsampling_size: int = 256, pathlength_height_limit: int = 0):
 
     exp_parameters, forest_parameters, exp_results, _ = iforest_experiment_data(train_X, eval_X, eval_y,
                                                                                 parameters["exp_name"],
                                                                                 parameters["prediction_column"],
-                                                                                nb_tree=100)
+                                                                                nb_tree=nb_tree, #default tree numbers in original paper experiment
+                                                                                subsampling_size= subsampling_size,
+                                                                                pathlength_height_limit=pathlength_height_limit)
 
     results = {"iforest": {
         "AUC": exp_results["AUC"],
@@ -508,7 +561,7 @@ def iforest_experiment_file(exp_name: str, file_path: str, pred_column: str, nb_
                             auc_roc: bool = False, anomaly_histogram: bool = False, pairplot: bool = False,
                             plot_save: bool = False):
 
-    train_X, eval_X, train_y, eval_y = preprocess_data(file_path, pred_column, df_sampling_ratio, df_features_ratio)
+    train_X, eval_X, train_y, eval_y = preprocess_data_file(file_path, pred_column, df_sampling_ratio, df_features_ratio)
 
     return iforest_experiment_data(train_X, eval_X, eval_y, exp_name, pred_column,
                                    nb_tree, subsampling_size, pathlength_height_limit,

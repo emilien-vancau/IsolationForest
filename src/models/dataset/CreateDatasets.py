@@ -66,6 +66,39 @@ def create_anomaly_dataset_experimental(n_samples: int, n_features: int, outiers
 
     return df
 
+
+def create_anomalies_clusters_dataset(nb_points, contamination_ratio, nb_anomaly_clusters, anomalies_distance_factor, anomaly_spread=0.5):
+
+    nb_anomalies_points = get_size_ratio(nb_points, contamination_ratio)
+    nb_normal_points = nb_points - nb_anomalies_points
+    points_per_anomaly_cluster = round(nb_anomalies_points / nb_anomaly_clusters)
+
+    normal_center = np.random.uniform(-10, 10, 2)
+    normal_points = np.random.randn(nb_normal_points, 2) + normal_center
+
+    anomaly_points = []
+
+    for _ in range(nb_anomaly_clusters):
+        direction = np.random.randn(2)
+        direction /= np.linalg.norm(direction)  # Normaliser pour obtenir une direction unitaire
+        anomaly_center = normal_center + direction * anomalies_distance_factor * 3  # distance_factor * 3 pour échelonner la distance
+        cluster_anomaly_points = anomaly_spread * np.random.randn(points_per_anomaly_cluster, 2) + anomaly_center
+        anomaly_points.append(cluster_anomaly_points)
+
+    anomaly_points = np.vstack(anomaly_points)
+
+    # Combine anomalies and normal points
+    all_points = np.vstack([normal_points, anomaly_points])
+
+    # Création des labels
+    labels = np.array([0] * nb_normal_points + [1] * len(anomaly_points))
+
+    df = pd.DataFrame(data=all_points, columns=['X', 'Y'])
+    df["labels"] = labels
+
+    return df
+
+
 def make_datasets():
     # Get Breast cancer dataset
     cancer = load_breast_cancer()
@@ -159,3 +192,8 @@ def make_datasets():
 
 
 make_datasets()
+
+
+
+
+

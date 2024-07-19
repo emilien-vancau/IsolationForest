@@ -14,33 +14,41 @@ def get_size_ratio(size: int, ratio: float):
     return
 
 
-def preprocess_data(file_path: str, prediction_column: str, sample_row_ratio=None, sample_column_ratio=None):
+def generate_geometric_sequence(n: int = 15):
+    if n >= 0:
+        return [2**i for i in range(n)]
+    print("sequence number should be positive")
+    return
+
+
+
+
+def preprocess_data_file(file_path: str, prediction_column: str, sample_row_ratio=None, sample_column_ratio=None):
     df = pd.read_csv(file_path, sep=r'\s*,\s*', header=0, encoding='ascii', engine='python')
 
-    #drop rows with missing values
-    df = df.dropna()
+    return preprocess_data(df, prediction_column, sample_column_ratio, sample_row_ratio)
 
+
+def preprocess_data(input_df: DataFrame, prediction_column: str, sample_column_ratio=None, sample_row_ratio=None):
+    # drop rows with missing values
+    input_df = input_df.dropna()
     # drop column which contains categorical values
-    proc_df = df[df.select_dtypes(include=['float64', 'int64']).columns.tolist()]
-
+    proc_df = input_df[input_df.select_dtypes(include=['float64', 'int64']).columns.tolist()]
     # randomly pre-sample dataset
     if sample_row_ratio:
         sample_row = get_size_ratio(proc_df.shape[0], sample_row_ratio)
         proc_df = proc_df.sample(sample_row)
-
     if sample_column_ratio:
         sample_column = get_size_ratio(proc_df.shape[1], sample_column_ratio)
         if sample_column < 2:
             sample_column = 2
             print("not enough columns to perform isolation processing, sample column set to 2")
         proc_df = proc_df.sample(sample_column, axis="columns")
-
     train_X, eval_X, train_y, eval_y = None, None, None, None
-
     if prediction_column:
 
         # add prediction column to processed dataframe
-        proc_df[prediction_column] = df[prediction_column]
+        proc_df[prediction_column] = input_df[prediction_column]
 
         # check if prediction data are strings and if it's only 2 possible value that can be used as a boolean
         if proc_df[prediction_column].dtype == 'object':
@@ -54,7 +62,7 @@ def preprocess_data(file_path: str, prediction_column: str, sample_row_ratio=Non
         X, y = proc_df.drop(prediction_column, axis=1), proc_df[prediction_column]
 
         # split input data
-        #train_X, eval_X, train_y, eval_y = train_test_split(X, y, random_state=1)
+        # train_X, eval_X, train_y, eval_y = train_test_split(X, y, random_state=1)
 
         # Using StratifiedShuffleSplit to ensure both classes are present in train and eval sets
         sss = StratifiedShuffleSplit(n_splits=1, test_size=0.25, random_state=42)

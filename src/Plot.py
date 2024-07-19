@@ -117,14 +117,58 @@ def auc_time_plot(auc_results, time_results, param_name, param_array):
 
 def auc_dist_factor_plot(auc_results, dist_factors):
     plt.figure(figsize=(10, 6))
-    plt.plot(dist_factors, auc_results, marker='o', linestyle='-', color='b', label='AUC vs Facteur de distance')
+    plt.plot(dist_factors, auc_results, marker='o', linestyle='-', color='#3399e6')
 
-    # Ajouter des labels et un titre
     plt.xlabel('Facteur de distance')
     plt.ylabel('AUC')
     plt.title('AUC en fonction du Facteur de distance')
     plt.legend()
 
-    # Afficher le plot
     plt.grid(True)
-    plt.show()
+
+    fig = plt.gcf()
+
+    plt.close()
+
+    return fig
+
+
+def plot_clusters(df, label_column: str):
+    plt.figure(figsize=(10, 8))
+    normal_points = df[df[label_column] == 0]
+    anomaly_points = df[df[label_column] == 1]
+
+    plt.scatter(normal_points['X'], normal_points['Y'], c="blue", label=f"Normal ({len(normal_points)})")
+    plt.scatter(anomaly_points['X'], anomaly_points['Y'], c="red", label=f"Anomalie ({len(anomaly_points)})")
+    plt.legend()
+    plt.xlabel('X')
+    plt.ylabel('Y')
+
+    fig = plt.gcf()
+
+    plt.close()
+
+    return fig
+
+
+def plot_auc_contamination(data, labels, colormap='viridis'):
+    plt.figure(figsize=(10, 6))
+
+    # Create a colormap
+    cmap = plt.get_cmap(colormap)
+    colors = cmap(np.linspace(0, 1, len(data)))
+
+    for i, (contamination_levels, auc_values) in enumerate(data):
+        plt.plot(contamination_levels, auc_values, label=labels[i], marker='o', color=colors[i])
+
+    plt.xlabel('Niveau de contamination')
+    plt.ylabel('AUC')
+    plt.title('AUC par niveau de contamination')
+    plt.legend()
+    plt.grid(True)
+
+    fig = plt.gcf()
+
+    plt.close()
+
+    return fig
