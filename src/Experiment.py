@@ -15,7 +15,8 @@ from sklearn.ensemble import IsolationForest as IF
 from sklearn.neighbors import LocalOutlierFactor
 from sklearn.svm import OneClassSVM
 
-from src.Plot import auc_time_plot, auc_roc_plot, anomalies_histogram_plot, anomaly_pairplot, auc_dist_factor_plot
+from src.Plot import auc_time_plot, auc_roc_plot, anomalies_histogram_plot, anomaly_pairplot, auc_dist_factor_plot, \
+    auc_contamination_hlimit_plot
 from src.Utility import preprocess_data_file, INLIERS_ONLY_EXP_FILEPATH, AUC_TIME_EXP_FILEPATH, PARAMETERS_EXP_FILEPATH, \
     preprocess_data
 from src.models.dataset.CreateDatasets import create_anomalies_clusters_dataset
@@ -201,26 +202,41 @@ def auc_time_experiment(parameters: dict, current_run: int = 1):
     return auc_time_results
 
 #Masking experiment
-def mean_experiment_hlimit(exp_parameters: dict, height_limit: int = 6):
+def mean_experiment_hlimit(exp_parameters: dict, height_limit: int, nb_run: int = 1):
 
-    for i in range(height_limit):
-        pass
+    mean_hlimits_aucs = []
+    height_limits = range(1, height_limit + 1)
 
+    for hl in height_limits:
 
-def hlimit_experiment():
-    pass
+        mean_auc_cont_hl = []
 
+        for ratio in exp_parameters["contamination_ratios"]:
 
-def dist_factor_experiment(df: DataFrame, exp_name: str, prediction_column: str, current_factor: int,  current_run: int):
-    train_X, eval_X, _, eval_y = preprocess_data(df, prediction_column, sample_row_ratio=1, sample_column_ratio=1)
+            df = create_anomalies_clusters_dataset(nb_points=exp_parameters["nb_points"],
+                                                   contamination_ratio=ratio,
+                                                   nb_anomaly_clusters=exp_parameters["nb_anomaly_clusters"],
+                                                   anomalies_distance_factor=exp_parameters["distance_factor"],
+                                                   anomaly_spread=exp_parameters["anomaly_spread"])
 
-    exp_parameters, forest_parameters, exp_results, _ = iforest_experiment_data(train_X, eval_X, eval_y, exp_name, prediction_column)
+            exp_parameters.update({"prediction_column": "labels"})  # default prediction column name for this experiment
 
-    save_exp_data(f"iforest_{exp_name}-dist_factor_{current_factor}-run_{current_run}", exp_parameters, exp_results,
-                  PARAMETERS_EXP_FILEPATH,
-                  model_infos=forest_parameters)
+            auc_results = []
 
-    return exp_results["AUC"]
+            for i in range(nb_run):
+                auc = hlimit_contamination_experiment(df, exp_parameters["exp_name"], exp_parameters["prediction_column"], i, ratio, hl)
+                auc_results.append(auc)
+
+            #mean for one contamination level in one hlimit
+            mean_auc_cont_hl.append(np.mean(auc_results))
+
+        #add aucs results for the current hlimit
+        mean_hlimits_aucs.append(mean_auc_cont_hl)
+
+    fig = auc_contamination_hlimit_plot(exp_parameters["contamination_ratios"], mean_hlimits_aucs, height_limits)
+    save_exp_figure(fig, PARAMETERS_EXP_FILEPATH, f"{exp_parameters['exp_name']}_contamination_hlimit")
+
+    return mean_hlimits_aucs
 
 #Swamping experiment
 def mean_experiment_dist_factor(exp_parameters: dict, nb_run: int = 1):
@@ -229,7 +245,6 @@ def mean_experiment_dist_factor(exp_parameters: dict, nb_run: int = 1):
 
     for factor in exp_parameters["distance_factors"]:
 
-        #gen data
         df = create_anomalies_clusters_dataset(nb_points=exp_parameters["nb_points"], contamination_ratio=exp_parameters["contamination_ratio"], nb_anomaly_clusters=exp_parameters["nb_anomaly_clusters"],
                                                            anomalies_distance_factor=factor, anomaly_spread=exp_parameters["anomaly_spread"])
 
@@ -239,7 +254,6 @@ def mean_experiment_dist_factor(exp_parameters: dict, nb_run: int = 1):
 
         for i in range(nb_run):
             auc = dist_factor_experiment(df, exp_parameters["exp_name"], exp_parameters["prediction_column"], factor, i)
-            #do experiment
             auc_results.append(auc)
 
         mean_auc.append(np.mean(auc_results))
@@ -249,6 +263,32 @@ def mean_experiment_dist_factor(exp_parameters: dict, nb_run: int = 1):
     save_exp_figure(fig, PARAMETERS_EXP_FILEPATH, f"{exp_parameters['exp_name']}_distance_factors")
 
     return mean_auc
+
+
+def hlimit_contamination_experiment(df: DataFrame, exp_name: str, prediction_column: str, current_run: int, current_contamination_ratio: int, current_hlimit: int):
+    train_X, eval_X, _, eval_y = preprocess_data(df, prediction_column)
+
+    exp_parameters, forest_parameters, exp_results, _ = iforest_experiment_data(train_X, eval_X, eval_y, exp_name, prediction_column,
+                                                                                pathlength_height_limit=current_hlimit)
+
+    save_exp_data(f"iforest_{exp_name}-contamination_{current_contamination_ratio}-hlimit_{current_hlimit}-run_{current_run}", exp_parameters, exp_results,
+                  PARAMETERS_EXP_FILEPATH,
+                  model_infos=forest_parameters)
+
+    return exp_results["AUC"]
+
+def dist_factor_experiment(df: DataFrame, exp_name: str, prediction_column: str, current_factor: int,  current_run: int):
+    train_X, eval_X, _, eval_y = preprocess_data(df, prediction_column)
+
+    exp_parameters, forest_parameters, exp_results, _ = iforest_experiment_data(train_X, eval_X, eval_y, exp_name, prediction_column)
+
+    save_exp_data(f"iforest_{exp_name}-dist_factor_{current_factor}-run_{current_run}", exp_parameters, exp_results,
+                  PARAMETERS_EXP_FILEPATH,
+                  model_infos=forest_parameters)
+
+    return exp_results["AUC"]
+
+
 
 def run_skl_iforest(train_X, eval_X, eval_y, parameters:dict, current_run: int):
 

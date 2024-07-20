@@ -151,15 +151,16 @@ def plot_clusters(df, label_column: str):
     return fig
 
 
-def plot_auc_contamination(data, labels, colormap='viridis'):
-    plt.figure(figsize=(10, 6))
+def auc_contamination_hlimit_plot(contamination_levels, auc_results, hlimit_labels, colormap='viridis'):
+
+    plt.figure(figsize=(12, 8))
 
     # Create a colormap
     cmap = plt.get_cmap(colormap)
-    colors = cmap(np.linspace(0, 1, len(data)))
+    colors = cmap(np.linspace(0, 1, len(auc_results)))
 
-    for i, (contamination_levels, auc_values) in enumerate(data):
-        plt.plot(contamination_levels, auc_values, label=labels[i], marker='o', color=colors[i])
+    for i, auc_values in enumerate(auc_results):
+        plt.plot(contamination_levels, auc_values, label=f"height limit: {hlimit_labels[i]}", marker='o', color=colors[i])
 
     plt.xlabel('Niveau de contamination')
     plt.ylabel('AUC')

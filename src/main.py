@@ -1,5 +1,5 @@
 from src.Experiment import run_iforest_param_experiments, mean_experiment_auc_time, mean_experiment_inliers, \
-    mean_experiment_dist_factor
+    mean_experiment_dist_factor, mean_experiment_hlimit
 from src.Utility import AUC_TIME_EXP_FILEPATH, INLIERS_ONLY_EXP_FILEPATH, generate_geometric_sequence
 
 
@@ -184,10 +184,10 @@ def main():
 
     masking_exp_parameters = {
         "exp_name": "masking_effect",
-        "pathlength_height_limit": generate_geometric_sequence(8),
-        "nb_points": 1500,
-        "contamination_ratio": .1,
-        "nb_anomaly_clusters": 3,
+        "nb_points": 4096,
+        "contamination_ratios": [x / 100.0 for x in range(10, 100, 5)],
+        "distance_factor": 2,
+        "nb_anomaly_clusters": 1,
         "anomaly_spread": .2
     }
 
@@ -210,7 +210,8 @@ def main():
     # df_auc_time_exp = mean_experiment_auc_time(datasets_parameters, nb_run=10)
     # df_auc_time_exp.to_csv(f"{AUC_TIME_EXP_FILEPATH}mean results.csv", index=False)
 
-    mean_experiment_dist_factor(swamping_exp_parameters, 10)
+    #mean_experiment_dist_factor(swamping_exp_parameters, 10)
+    mean_experiment_hlimit(masking_exp_parameters, 6, 10)
 
 if __name__ == "__main__":
     main()
