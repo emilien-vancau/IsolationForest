@@ -2,6 +2,7 @@ import pandas as pd
 from pandas import DataFrame
 from sklearn.model_selection import StratifiedShuffleSplit, train_test_split
 
+#Constants filepaths
 EXPERIMENT_FILEPATH = "./experiments results/"
 INLIERS_ONLY_EXP_FILEPATH = EXPERIMENT_FILEPATH + "inliers only/"
 AUC_TIME_EXP_FILEPATH = EXPERIMENT_FILEPATH + "auc_time/"
@@ -19,7 +20,7 @@ def generate_geometric_sequence(sequence_length: int = 15, start_index: int = 0)
     print("sequence number should be positive")
     return
 
-def display_anmalies_proportions(df: DataFrame, label_column: str):
+def display_outliers_proportions(df: DataFrame, label_column: str):
     print(df[label_column].value_counts(normalize=True))
 
 
@@ -87,7 +88,6 @@ def display_class_proportions(df: DataFrame, label_column: str):
     print(df_proportions)
 
 
-def display_firsts_anomalies(df: DataFrame, n: int = 10):
-    pass
+
 
 

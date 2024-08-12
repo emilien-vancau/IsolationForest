@@ -6,12 +6,10 @@ import numpy as np
 from pandas import DataFrame
 from sklearn import metrics
 
-from src.models.feature.Feature import Feature
-from src.models.feature.FeaturesSet import FeaturesSet
 from src.models.isolationForest.IsolationLeaf import IsolationLeaf
 from src.models.isolationForest.IsolationNode import IsolationNode
 from src.models.isolationForest.IsolationTree import IsolationTree
-from src.models.sample.Sample import Sample
+
 
 
 class IsolationForest(object):
@@ -27,45 +25,9 @@ class IsolationForest(object):
         self.evaluation_time = 0
         self.total_nodes_nb = 0
 
-    def init(self):
+    def fit(self):
         """
-            Initialize the input features for the dataset.
-
-            This function iterates through the columns of the input dataframe, creating Feature objects
-            for each column and populating them with samples from the dataframe. Each sample consists of
-            an observation index and the corresponding value in the column. The Feature objects are sorted
-            based on their values, and then added to the input_features_set.
-
-            Returns:
-                None
-        """
-
-        input_features = []
-
-        # get dataframe index values
-        obs_indexes = self.input_dataframe.index.values
-
-        for column in self.input_dataframe.columns:
-            # get current feature set
-            feature_column = self.input_dataframe[column].tolist()
-            feature = Feature(column)
-            for obs in range(0, len(obs_indexes)):
-                # create sample and add it to the corresponding feature set
-                sample = Sample(obs_indexes[obs], feature_column[obs])
-                feature.add_sample(sample)
-
-            feature.sort_value_set()
-            input_features.append(feature)
-
-        self.input_features_set = FeaturesSet(len(obs_indexes), input_features)
-
-    def fit(self, is_experimental=False):
-        """
-            Fit the random forest model to the dataset.
-
-            Args:
-                is_experimental (bool, optional): Flag indicating whether to use experimental initialization.
-                    Defaults to False.
+            Fit the isolation forest model to the dataset.
 
             Returns:
                 None
@@ -83,10 +45,6 @@ class IsolationForest(object):
             print(
                 f"not enought data to set subsampling size to {self.subsampling_size}. Subsampling size set to max dataframe size")
             self.subsampling_size = self.input_dataframe.shape[0]
-
-        # forest initialization
-        if is_experimental:
-            self.init()
 
         # compute trees height limit, round up the log2 of sumbsampling
         self.height_limit = math.ceil(math.log2(self.subsampling_size))

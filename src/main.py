@@ -3,7 +3,7 @@ import pandas as pd
 from src.Experiment import run_iforest_param_experiments, mean_experiment_auc_time, mean_experiment_inliers, \
     mean_experiment_dist_factor, mean_experiment_hlimit
 from src.Utility import AUC_TIME_EXP_FILEPATH, INLIERS_ONLY_EXP_FILEPATH, generate_geometric_sequence, \
-    display_anmalies_proportions
+    display_outliers_proportions
 
 
 def main():
@@ -195,24 +195,24 @@ def main():
     }
 
     datasets_parameters = []
-    # datasets_parameters.extend([gen2_parameters, http_parameters, credit_card_parameters, cancer_parameters, landsat_parameters,
-    # gen1_parameters, gen3_parameters, wines_parameters,
-    # iris_parameters, sa_parameters, smtp_parameters])
+    datasets_parameters.extend([gen2_parameters, http_parameters, credit_card_parameters, cancer_parameters, landsat_parameters,
+    gen1_parameters, gen3_parameters, wines_parameters,
+    iris_parameters, sa_parameters, smtp_parameters])
 
-    #Experiment hyperparameters
-    # for dataset_parameters in datasets_parameters:
-    #     run_iforest_param_experiments(dataset_parameters, 10)
+    # Experiment hyperparameters
+    for dataset_parameters in datasets_parameters:
+        run_iforest_param_experiments(dataset_parameters, 10)
 
     # Training only with inliers experiment
-    # df_inlier_exp = mean_experiment_inliers(datasets_parameters, nb_run=10)
-    # df_inlier_exp.to_csv(f"{INLIERS_ONLY_EXP_FILEPATH}mean results.csv", index=False)
+    df_inlier_exp = mean_experiment_inliers(datasets_parameters, nb_run=10)
+    df_inlier_exp.to_csv(f"{INLIERS_ONLY_EXP_FILEPATH}mean results.csv", index=False)
 
-    # df_auc_time_exp = mean_experiment_auc_time(datasets_parameters, nb_run=10)
-    # df_auc_time_exp.to_csv(f"{AUC_TIME_EXP_FILEPATH}mean results.csv", index=False)
+    df_auc_time_exp = mean_experiment_auc_time(datasets_parameters, nb_run=10)
+    df_auc_time_exp.to_csv(f"{AUC_TIME_EXP_FILEPATH}mean results.csv", index=False)
 
     # Masking and Swamping measurements of IForest model
-    # mean_experiment_dist_factor(swamping_exp_parameters, 10)
-    #mean_experiment_hlimit(masking_exp_parameters, 6, 10)
+    mean_experiment_dist_factor(swamping_exp_parameters, 10)
+    mean_experiment_hlimit(masking_exp_parameters, 6, 10)
 
 if __name__ == "__main__":
     main()
