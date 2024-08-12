@@ -187,8 +187,8 @@ def auc_time_experiment(parameters: dict, current_run: int = 1):
 
     auc_time_results = {}
 
-    ocsvm_results = run_ocsvm(train_X, eval_X, eval_y, parameters, current_run)
-    auc_time_results.update(ocsvm_results)
+    # ocsvm_results = run_ocsvm(train_X, eval_X, eval_y, parameters, current_run)
+    # auc_time_results.update(ocsvm_results)
 
     skl_iforest_results = run_skl_iforest(train_X, eval_X, eval_y, parameters, current_run)
     auc_time_results.update(skl_iforest_results)
@@ -196,8 +196,8 @@ def auc_time_experiment(parameters: dict, current_run: int = 1):
     iforest_results = run_iforest(train_X, eval_X, eval_y, parameters, current_run)
     auc_time_results.update(iforest_results)
 
-    lof_results = run_lof(train_X, eval_X, train_y, eval_y, parameters, current_run)
-    auc_time_results.update(lof_results)
+    # lof_results = run_lof(train_X, eval_X, train_y, eval_y, parameters, current_run)
+    # auc_time_results.update(lof_results)
 
     return auc_time_results
 
@@ -557,6 +557,7 @@ def run_iforest_param_experiments(parameters: dict, nb_run: int = 1):
 
             mean_auc_results = []
             mean_time_results = []
+            fig = None
 
             for i in range(nb_run):
 
@@ -589,7 +590,12 @@ def run_iforest_param_experiments(parameters: dict, nb_run: int = 1):
             mean_times = np.mean(mean_time_matrix, axis=0)
 
             #AUC TIME PLOT
-            fig = auc_time_plot(mean_aucs, mean_times, param_name, parameters[param_key])
+
+            if param_name == "subsampling_size":
+                fig = auc_time_plot(mean_aucs, mean_times, param_name, parameters[param_key], x_log_display=True)
+            else:
+                fig = auc_time_plot(mean_aucs, mean_times, param_name, parameters[param_key])
+
             fig_exp_name = parameters["exp_name"]
             save_exp_figure(fig, PARAMETERS_EXP_FILEPATH, f"{fig_exp_name}_auc-time_{param_name}")
 

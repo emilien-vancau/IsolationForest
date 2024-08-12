@@ -13,14 +13,14 @@ def get_size_ratio(size: int, ratio: float):
     print("ratio should be between 0 (exclude) and 1")
     return
 
-
-def generate_geometric_sequence(n: int = 15):
-    if n >= 0:
-        return [2**i for i in range(n)]
+def generate_geometric_sequence(sequence_length: int = 15, start_index: int = 0):
+    if sequence_length > 0:
+        return [2 ** i for i in range(start_index, start_index + sequence_length)]
     print("sequence number should be positive")
     return
 
-
+def display_anmalies_proportions(df: DataFrame, label_column: str):
+    print(df[label_column].value_counts(normalize=True))
 
 
 def preprocess_data_file(file_path: str, prediction_column: str, sample_row_ratio=None, sample_column_ratio=None):

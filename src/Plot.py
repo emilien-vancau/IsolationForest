@@ -90,11 +90,15 @@ def anomaly_pairplot(proc_df: DataFrame):
     return figure
 
 
-def auc_time_plot(auc_results, time_results, param_name, param_array):
 
-    fig, ax1 = plt.subplots()
+def auc_time_plot(auc_results, time_results, param_name, param_array, x_log_display: bool = False):
+    fig, ax1 = plt.subplots(figsize=(9, 7))
     ax2 = ax1.twinx()
-    fig.suptitle(f"AUC/TIME")
+    # fig.suptitle(f"AUC/TIME")
+
+    # Check if param_array covers a wide range
+    if x_log_display:
+        ax1.set_xscale('log', base=2)
 
     ax1.plot(param_array, time_results, linestyle='--', color="#69b3a2", label='Temps', marker='o')
     ax2.plot(param_array, auc_results, color="#3399e6", label='AUC', marker='o')
