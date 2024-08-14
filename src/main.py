@@ -1,9 +1,6 @@
-import pandas as pd
-
-from src.Experiment import run_iforest_param_experiments, mean_experiment_auc_time, mean_experiment_inliers, \
+from src.models.experiment.Experiment import run_iforest_param_experiments, mean_experiment_auc_time, mean_experiment_inliers, \
     mean_experiment_dist_factor, mean_experiment_hlimit
-from src.Utility import AUC_TIME_EXP_FILEPATH, INLIERS_ONLY_EXP_FILEPATH, generate_geometric_sequence, \
-    display_outliers_proportions
+from src.models.utility.Utility import AUC_TIME_EXP_FILEPATH, INLIERS_ONLY_EXP_FILEPATH, generate_geometric_sequence
 
 
 def main():

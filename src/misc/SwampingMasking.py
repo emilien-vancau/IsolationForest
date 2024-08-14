@@ -11,7 +11,7 @@ large_cluster_points = np.random.multivariate_normal(large_cluster_mean, large_c
 anomaly_clusters_means = [[3, 3], [-3, -3], [5, -4], [1, 4]] #nombres de clusters d'anomalies et leur position par rapport au centre
 anomaly_clusters_points = []
 for mean in anomaly_clusters_means:
-    points = np.random.multivariate_normal(mean, [[0.1, 0], [0, 0.1]], 30)  #changer ici pour plus de points des clusters d'anomalies
+    points = np.random.multivariate_normal(mean, [[0.1, 0], [0, 0.1]], 10)  #changer ici pour plus de points des clusters d'anomalies
     anomaly_clusters_points.append(points)
 
 

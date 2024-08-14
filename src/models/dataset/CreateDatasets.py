@@ -4,7 +4,7 @@ from ucimlrepo import fetch_ucirepo
 import pandas as pd
 import numpy as np
 
-from src.Utility import get_size_ratio
+from src.models.utility.Utility import get_size_ratio
 
 
 def create_anomaly_dataset(n_samples: int, n_features: int, outiers_percentage: float, n_informative: int,

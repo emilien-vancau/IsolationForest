@@ -1,5 +1,5 @@
 from src.models.dataset.CreateDatasets import create_anomalies_clusters_dataset
-from src.Plot import plot_clusters
+from src.models.plot.Plot import plot_clusters
 
 
 def test_contamination():
